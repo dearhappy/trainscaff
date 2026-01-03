@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Inventory</title>
+    <style>
+        /* CSS STYLES - Makes it look good */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; padding: 20px; margin: 0; }
+        h1 { text-align: center; color: #333; }
+
+        /* Gallery Grid */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* The Card */
+        .card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card img { width: 100%; height: 150px; object-fit: cover; }
+        .card-body { padding: 15px; }
+        .card-title { font-weight: bold; margin-bottom: 5px; }
+        .status { font-size: 0.8em; padding: 3px 8px; border-radius: 10px; color: white; }
+        .status.Available { background-color: #28a745; }
+        .status.In-Use { background-color: #dc3545; }
+
+        /* The Modal (Popup) */
+        .modal {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: left;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute; top: 10px; right: 15px;
+            font-size: 24px; cursor: pointer;
+        }
+        .modal-img { width: 100%; height: auto; border-radius: 5px; margin-bottom: 15px; }
+        .loading { text-align: center; margin-top: 50px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+    <h1>Equipment Catalog</h1>
+    
+    <div id="loading" class="loading">Loading equipment data...</div>
+    <div id="gallery" class="gallery"></div>
+
+    <div id="modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+            <img id="m-img" class="modal-img" src="" alt="">
+            <h2 id="m-title"></h2>
+            <p><strong>ID:</strong> <span id="m-id"></span></p>
+            <p><strong>Status:</strong> <span id="m-status"></span></p>
+            <p><strong>Specs:</strong></p>
+            <p id="m-specs"></p>
+        </div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // PASTE YOUR GOOGLE SCRIPT WEB APP URL BELOW
+        // ----------------------------------------------------
+        const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxE_L-8c2RjUsE8DHSEBItLvzlQQ6nE1uxquecQAAgD0uPvWbZbeKieIzkV8Yg3nuEO/exec'; 
+
+        async function loadData() {
+            try {
+                const response = await fetch(SHEET_API_URL);
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                renderGallery(data);
+            } catch (error) {
+                document.getElementById('loading').innerText = 'Error loading data. Check console.';
+                console.error(error);
+            }
+        }
+
+        function renderGallery(items) {
+            const container = document.getElementById('gallery');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                // Create Card HTML
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openModal(item);
+
+                // Handle status color safely
+                const statusClass = item.Status ? item.Status.replace(' ', '-') : '';
+
+                card.innerHTML = `
+                    <img src="${item['Image URL']}" alt="${item.Title}">
+                    <div class="card-body">
+                        <div class="card-title">${item.Title}</div>
+                        <span class="status ${statusClass}">${item.Status}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openModal(item) {
+            document.getElementById('m-img').src = item['Image URL'];
+            document.getElementById('m-title').innerText = item.Title;
+            document.getElementById('m-id').innerText = item.ID;
+            document.getElementById('m-status').innerText = item.Status;
+            document.getElementById('m-specs').innerText = item.Specs;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal(event) {
+            // Close if clicked outside the white box
+            if (event.target.id === 'modal') {
+                document.getElementById('modal').style.display = 'none';
+            }
+        }
+
+        // Start loading
+        loadData();
+    </script>
+</body>
+</html>
