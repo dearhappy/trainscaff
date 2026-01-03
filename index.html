@@ -2,101 +2,214 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equipment Inventory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Basics of Scaffolding</title>
     <style>
-        /* CSS STYLES - Makes it look good */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; padding: 20px; margin: 0; }
-        h1 { text-align: center; color: #333; }
+        /* --- BASIC SETUP --- */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 10px; 
+            margin: 0; 
+            color: #333;
+        }
+        
+        h1 { 
+            text-align: center; 
+            color: #2c3e50; 
+            margin-top: 10px;
+            font-size: 1.8rem;
+        }
 
-        /* Gallery Grid */
+        /* --- GALLERY GRID (RESPONSIVE) --- */
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+            /* Creates a responsive grid: minimum column width 150px, otherwise fills space */
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 20px auto;
+            padding-bottom: 50px; /* Space for scrolling */
         }
 
-        /* The Card */
+        /* --- CARD STYLING --- */
         .card {
             background: white;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s active 0.1s;
+            display: flex;
+            flex-direction: column;
         }
-        .card:hover { transform: translateY(-5px); }
-        .card img { width: 100%; height: 150px; object-fit: cover; }
-        .card-body { padding: 15px; }
-        .card-title { font-weight: bold; margin-bottom: 5px; }
-        .status { font-size: 0.8em; padding: 3px 8px; border-radius: 10px; color: white; }
-        .status.Available { background-color: #28a745; }
-        .status.In-Use { background-color: #dc3545; }
+        
+        .card:active { transform: scale(0.98); } /* Click effect on mobile */
 
-        /* The Modal (Popup) */
-        .modal {
+        .card img { 
+            width: 100%; 
+            height: 140px; 
+            object-fit: cover; 
+            background-color: #eee;
+        }
+
+        .card-body { 
+            padding: 12px; 
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-title { 
+            font-weight: 600; 
+            font-size: 1rem; 
+            margin-bottom: 8px; 
+            line-height: 1.3;
+        }
+
+        .status-badge { 
+            align-self: flex-start;
+            font-size: 0.75rem; 
+            padding: 4px 10px; 
+            border-radius: 20px; 
+            color: white; 
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Status Colors */
+        .status-available { background-color: #28a745; }
+        .status-in-use { background-color: #dc3545; }
+        .status-maintenance { background-color: #ffc107; color: #333; }
+        .status-default { background-color: #6c757d; }
+
+        /* --- MODAL (POPUP) STYLING --- */
+        .modal-overlay {
             display: none; 
             position: fixed; 
             top: 0; left: 0; 
             width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            box-sizing: border-box; /* Ensures padding is counted */
         }
+
         .modal-content {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
+            width: 100%;
             max-width: 500px;
-            width: 90%;
-            text-align: left;
+            border-radius: 16px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh; /* Limits height to 90% of screen */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease-out;
         }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* This is the key part for scrolling */
+        .modal-body-scroll {
+            padding: 20px;
+            overflow-y: auto; /* Enables scrolling for long text */
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iPhone */
+        }
+
+        .modal-img { 
+            width: 100%; 
+            height: auto; 
+            max-height: 250px; 
+            object-fit: cover; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+        }
+
         .close-btn {
-            position: absolute; top: 10px; right: 15px;
-            font-size: 24px; cursor: pointer;
+            position: absolute; 
+            top: 10px; 
+            right: 15px;
+            font-size: 28px; 
+            color: #333;
+            background: rgba(255,255,255,0.8);
+            width: 35px; height: 35px;
+            text-align: center;
+            line-height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
         }
-        .modal-img { width: 100%; height: auto; border-radius: 5px; margin-bottom: 15px; }
-        .loading { text-align: center; margin-top: 50px; font-size: 1.2em; }
+
+        .modal-title { font-size: 1.5rem; margin: 0 0 10px 0; color: #222; }
+        
+        .detail-row { margin-bottom: 12px; line-height: 1.5; }
+        .label { font-weight: bold; color: #555; display: block; margin-bottom: 2px; }
+        .spec-text { white-space: pre-wrap; color: #444; } /* Preserves line breaks in Excel */
+
+        /* Loading Spinner */
+        .loading { text-align: center; margin-top: 50px; font-size: 1.2rem; color: #666; }
+
     </style>
 </head>
 <body>
 
-    <h1>Equipment Catalog</h1>
+    <h1>Basics of Scaffolding</h1>
     
-    <div id="loading" class="loading">Loading equipment data...</div>
+    <div id="loading" class="loading">Loading details...</div>
     <div id="gallery" class="gallery"></div>
 
-    <div id="modal" class="modal" onclick="closeModal(event)">
+    <div id="modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content">
-            <span class="close-btn" onclick="document.getElementById('modal').style.display='none'">&times;</span>
-            <img id="m-img" class="modal-img" src="" alt="">
-            <h2 id="m-title"></h2>
-            <p><strong>ID:</strong> <span id="m-id"></span></p>
-            <p><strong>Status:</strong> <span id="m-status"></span></p>
-            <p><strong>Specs:</strong></p>
-            <p id="m-specs"></p>
+            <div class="close-btn" onclick="document.getElementById('modal').style.display='none'">&times;</div>
+            
+            <div class="modal-body-scroll">
+                <img id="m-img" class="modal-img" src="" alt="Equipment Image">
+                
+                <h2 id="m-title" class="modal-title"></h2>
+                
+                <div class="detail-row">
+                    <span id="m-status" class="status-badge status-default"></span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="label">ID Reference:</span>
+                    <span id="m-id"></span>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+                <div class="detail-row">
+                    <span class="label">Specifications & Details:</span>
+                    <div id="m-specs" class="spec-text"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // ----------------------------------------------------
-        // PASTE YOUR GOOGLE SCRIPT WEB APP URL BELOW
-        // ----------------------------------------------------
-        const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxE_L-8c2RjUsE8DHSEBItLvzlQQ6nE1uxquecQAAgD0uPvWbZbeKieIzkV8Yg3nuEO/exec'; 
+        // YOUR SPECIFIC DEPLOYED URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxE_L-8c2RjUsE8DHSEBItLvzlQQ6nE1uxquecQAAgD0uPvWbZbeKieIzkV8Yg3nuEO/exec'; 
 
-        async function loadData() {
+        async function init() {
             try {
-                const response = await fetch(SHEET_API_URL);
+                const response = await fetch(API_URL);
                 const data = await response.json();
                 
+                // Hide loader
                 document.getElementById('loading').style.display = 'none';
+                
                 renderGallery(data);
             } catch (error) {
-                document.getElementById('loading').innerText = 'Error loading data. Check console.';
-                console.error(error);
+                document.getElementById('loading').innerText = 'Failed to load data. Please refresh.';
+                console.error("Error fetching data:", error);
             }
         }
 
@@ -105,43 +218,58 @@
             container.innerHTML = '';
 
             items.forEach(item => {
-                // Create Card HTML
+                // Determine Status Color
+                let s = (item.Status || '').toLowerCase();
+                let statusClass = 'status-default';
+                if(s.includes('available')) statusClass = 'status-available';
+                if(s.includes('use')) statusClass = 'status-in-use';
+                if(s.includes('main')) statusClass = 'status-maintenance';
+
+                // Create Card
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.onclick = () => openModal(item);
-
-                // Handle status color safely
-                const statusClass = item.Status ? item.Status.replace(' ', '-') : '';
+                // Pass the item data to the click function
+                card.onclick = () => openModal(item, statusClass);
 
                 card.innerHTML = `
-                    <img src="${item['Image URL']}" alt="${item.Title}">
+                    <img src="${item['Image URL']}" alt="${item.Title}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
                     <div class="card-body">
                         <div class="card-title">${item.Title}</div>
-                        <span class="status ${statusClass}">${item.Status}</span>
+                        <span class="status-badge ${statusClass}">${item.Status || 'Unknown'}</span>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function openModal(item) {
+        function openModal(item, statusClass) {
+            // Populate Modal Data
             document.getElementById('m-img').src = item['Image URL'];
+            // Error handler for modal image
+            document.getElementById('m-img').onerror = function() { this.src='https://via.placeholder.com/300x200?text=No+Image'; };
+            
             document.getElementById('m-title').innerText = item.Title;
             document.getElementById('m-id').innerText = item.ID;
-            document.getElementById('m-status').innerText = item.Status;
             document.getElementById('m-specs').innerText = item.Specs;
+            
+            // Set Status Badge inside Modal
+            const statusEl = document.getElementById('m-status');
+            statusEl.innerText = item.Status || 'Unknown';
+            statusEl.className = `status-badge ${statusClass}`;
+
+            // Show Modal
             document.getElementById('modal').style.display = 'flex';
         }
 
         function closeModal(event) {
-            // Close if clicked outside the white box
+            // Close only if clicking the dark overlay, not the white box
             if (event.target.id === 'modal') {
                 document.getElementById('modal').style.display = 'none';
             }
         }
 
-        // Start loading
-        loadData();
+        // Start App
+        init();
     </script>
 </body>
 </html>
