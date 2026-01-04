@@ -14,102 +14,76 @@
         h1 { color: #2c3e50; font-size: 1.6rem; margin: 0; }
         .author { color: #7f8c8d; font-size: 0.85rem; margin-top: 4px; }
 
-        /* --- SEARCH BAR --- */
         .search-container {
-            max-width: 600px;
-            margin: 10px auto 20px;
-            padding: 0 10px;
+            max-width: 600px; margin: 10px auto 20px; padding: 0 10px;
         }
         #searchInput {
-            width: 100%;
-            padding: 12px;
-            border-radius: 25px;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            font-size: 1rem;
-            outline: none;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; border-radius: 25px; border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 1rem; outline: none; box-sizing: border-box;
         }
 
-        /* --- GALLERY GRID --- */
         .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 10px;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding-bottom: 30px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px; max-width: 1200px; margin: 0 auto; padding-bottom: 30px;
         }
 
         .card {
-            background: white; border-radius: 8px;
-            overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            cursor: pointer; position: relative;
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; position: relative;
             transition: transform 0.2s;
         }
         .card:active { transform: scale(0.95); }
 
         .thumb-container {
-            width: 100%; height: 100px; 
-            background: #e9ecef; display: flex;
-            align-items: center; justify-content: center; overflow: hidden;
+            width: 100%; height: 100px; background: #e9ecef;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-
         .thumb-container img { width: 100%; height: 100%; object-fit: cover; }
 
         .video-indicator {
-            position: absolute; top: 35px; left: 40px;
-            background: rgba(0,0,0,0.7); color: white;
-            border-radius: 50%; padding: 10px; font-size: 12px;
-            z-index: 2;
+            position: absolute; top: 35px; left: 40px; background: rgba(0,0,0,0.7);
+            color: white; border-radius: 50%; padding: 10px; font-size: 12px; z-index: 2;
         }
 
         .card-title {
-            padding: 5px; font-size: 0.75rem; font-weight: bold;
-            text-align: center; white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis;
+            padding: 5px; font-size: 0.75rem; font-weight: bold; text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* --- MODAL POPUP --- */
         .modal-overlay {
-            display: none; position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 1000;
-            justify-content: center; align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
         }
 
         .modal-content {
-            background: white; width: 95%; max-width: 600px;
-            border-radius: 12px; max-height: 90vh;
-            display: flex; flex-direction: column; position: relative;
+            background: white; width: 95%; max-width: 600px; border-radius: 12px;
+            max-height: 90vh; display: flex; flex-direction: column; position: relative;
         }
 
         .modal-body-scroll { padding: 15px; overflow-y: auto; }
 
         .media-container {
-            width: 100%; margin-bottom: 15px;
-            background: #000; border-radius: 8px; overflow: hidden;
+            width: 100%; margin-bottom: 15px; background: #000; border-radius: 8px; overflow: hidden;
         }
-
         .media-container img { width: 100%; height: auto; display: block; }
+        .media-container video, .media-container iframe { width: 100%; aspect-ratio: 16 / 9; border: none; }
 
-        .media-container video, .media-container iframe {
-            width: 100%; aspect-ratio: 16 / 9; border: none;
+        .close-btn-top {
+            position: absolute; top: -45px; right: 0; color: white; font-size: 35px; cursor: pointer;
         }
 
-        .close-btn {
-            position: absolute; top: -45px; right: 0;
-            color: white; font-size: 35px; cursor: pointer;
+        /* NEW BOTTOM CLOSE BUTTON */
+        .btn-close-bottom {
+            display: block; width: 100%; padding: 12px; margin-top: 20px;
+            background-color: #e74c3c; color: white; border: none;
+            border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center;
         }
+        .btn-close-bottom:active { background-color: #c0392b; }
 
         .modal-title { font-size: 1.2rem; margin: 0 0 5px 0; }
         .label { font-weight: bold; font-size: 0.8rem; color: #666; }
         .spec-text { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 5px; }
-
-        .status-badge {
-            font-size: 0.7rem; padding: 3px 8px; border-radius: 10px;
-            color: white; font-weight: bold; background: #6c757d;
-        }
+        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; color: white; font-weight: bold; background: #6c757d; }
     </style>
 </head>
 <body>
@@ -127,7 +101,8 @@
 
     <div id="modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content">
-            <span class="close-btn" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+            <span class="close-btn-top" onclick="doClose()">&times;</span>
+            
             <div class="modal-body-scroll">
                 <div id="media-viewer" class="media-container"></div>
                 <h2 id="m-title" class="modal-title"></h2>
@@ -136,6 +111,8 @@
                 <hr>
                 <span class="label">Specifications:</span>
                 <div id="m-specs" class="spec-text"></div>
+                
+                <button class="btn-close-bottom" onclick="doClose()">Close Details</button>
             </div>
         </div>
     </div>
@@ -182,8 +159,8 @@
         function filterGallery() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allItems.filter(item => 
-                item.Title.toLowerCase().includes(query) || 
-                item.ID.toString().toLowerCase().includes(query)
+                (item.Title && item.Title.toLowerCase().includes(query)) || 
+                (item.ID && item.ID.toString().toLowerCase().includes(query))
             );
             render(filtered);
         }
@@ -194,32 +171,32 @@
 
             if (url.includes('youtube.com') || url.includes('youtu.be')) {
                 let vidId = url.split('v=')[1] || url.split('/').pop();
-                // Adding autoplay and full screen support
                 viewer.innerHTML = `<iframe id="vidPlayer" src="https://www.youtube.com/embed/${vidId}?autoplay=1" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
             } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
                 viewer.innerHTML = `<video id="vidPlayer" controls autoplay><source src="${url}" type="video/mp4"></video>`;
-                // Attempt to trigger native full screen for direct videos
                 setTimeout(() => {
                     const v = document.getElementById('vidPlayer');
-                    if (v.requestFullscreen) v.requestFullscreen();
-                    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
+                    if (v && v.requestFullscreen) v.requestFullscreen();
                 }, 500);
             } else {
                 viewer.innerHTML = `<img src="${url}" alt="Equipment">`;
             }
 
-            document.getElementById('m-title').innerText = item.Title;
-            document.getElementById('m-id').innerText = item.ID;
-            document.getElementById('m-status').innerText = item.Status;
-            document.getElementById('m-specs').innerText = item.Specs;
+            document.getElementById('m-title').innerText = item.Title || '';
+            document.getElementById('m-id').innerText = item.ID || '';
+            document.getElementById('m-status').innerText = item.Status || '';
+            document.getElementById('m-specs').innerText = item.Specs || '';
             document.getElementById('modal').style.display = 'flex';
         }
 
+        // Dedicated Close Function
+        function doClose() {
+            document.getElementById('media-viewer').innerHTML = ''; 
+            document.getElementById('modal').style.display = 'none';
+        }
+
         function closeModal(e) { 
-            if(e.target.id === 'modal') {
-                document.getElementById('media-viewer').innerHTML = ''; // Stops video on close
-                document.getElementById('modal').style.display = 'none'; 
-            }
+            if(e.target.id === 'modal') doClose();
         }
 
         loadApp();
