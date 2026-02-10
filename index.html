@@ -5,88 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Scaffolding Hub</title>
     <style>
-        /* --- GLOBAL STYLES --- */
-        body { font-family: -apple-system, system-ui, sans-serif; background-color: #f4f6f8; margin: 0; padding: 10px; color: #333; }
-        .header-area { text-align: center; margin: 20px 0; }
-        h1 { color: #2c3e50; font-size: 1.5rem; margin: 0; }
-        .author { color: #7f8c8d; font-size: 0.8rem; margin-top: 5px; }
+        /* --- GLOBAL & ANIMATIONS --- */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            min-height: 100vh; margin: 0; padding: 10px; color: #333; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Fade Up Animation for Cards/Buttons */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Shake Animation for Wrong Answers */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Pop Animation for Correct Answers */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .header-area { text-align: center; margin: 25px 0; animation: fadeUp 0.6s ease-out; }
+        h1 { color: #2c3e50; font-size: 1.8rem; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .author { color: #7f8c8d; font-size: 0.85rem; margin-top: 5px; font-weight: 500; }
 
         /* --- MENU SCREEN --- */
-        #menuScreen { display: grid; gap: 12px; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
-        .menu-btn {
-            background: white; padding: 15px; border-radius: 10px; text-align: center;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.05); cursor: pointer; 
-            transition: transform 0.1s; border: 1px solid #eee;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .menu-btn:active { transform: scale(0.98); background-color: #eef2f7; }
+        #menuScreen { display: grid; gap: 15px; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
         
-        .btn-eng { font-weight: 700; color: #2c3e50; font-size: 1rem; margin-bottom: 2px; }
-        .btn-hin { font-weight: 400; color: #7f8c8d; font-size: 0.85rem; }
+        .menu-btn {
+            background: white; padding: 18px; border-radius: 16px; text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1); 
+            cursor: pointer; position: relative; overflow: hidden;
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s;
+            border: 1px solid rgba(255,255,255,0.5);
+            animation: fadeUp 0.5s ease-out backwards; /* Stagger applied in JS */
+        }
+        .menu-btn:active { transform: scale(0.97); }
+        .menu-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .btn-eng { display: block; font-weight: 800; color: #2c3e50; font-size: 1.1rem; margin-bottom: 4px; }
+        .btn-hin { display: block; font-weight: 500; color: #7f8c8d; font-size: 0.9rem; }
 
-        .btn-quiz { border-left: 5px solid #e67e22; } /* Orange stripe for quizzes */
-        .btn-train { border-left: 5px solid #3498db; } /* Blue stripe for training */
+        .btn-quiz { border-left: 6px solid #e67e22; }
+        .btn-train { border-left: 6px solid #3498db; }
 
         /* --- CONTENT SCREENS --- */
-        .screen { display: none; max-width: 800px; margin: 0 auto; }
-        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-        .back-btn { background: #95a5a6; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        .screen { display: none; max-width: 900px; margin: 0 auto; animation: fadeUp 0.4s ease-out; }
+        
+        .top-bar { 
+            display: flex; align-items: center; justify-content: space-between; 
+            margin-bottom: 20px; background: white; padding: 10px 15px; 
+            border-radius: 50px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .back-btn { 
+            background: #2c3e50; color: white; border: none; padding: 8px 20px; 
+            border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .back-btn:active { transform: scale(0.9); }
 
         /* --- GALLERY GRID --- */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; }
-        .card img { width: 100%; height: 100px; object-fit: cover; background: #eee; }
-        .card-title { padding: 8px; font-size: 0.75rem; font-weight: bold; text-align: center; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
+        
+        .card { 
+            background: white; border-radius: 12px; overflow: hidden; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; 
+            transition: all 0.3s ease; 
+            animation: fadeUp 0.5s ease-out backwards;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
+        .card:active { transform: scale(0.98); }
+
+        .card img { width: 100%; height: 110px; object-fit: cover; background: #eee; transition: 0.3s; }
+        .card:hover img { transform: scale(1.05); }
+        .card-title { padding: 10px; font-size: 0.8rem; font-weight: 700; text-align: center; color: #444; }
 
         /* --- QUIZ STYLES --- */
-        .quiz-info { background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 0.9rem; }
-        .quiz-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .q-number { font-size: 0.8rem; color: #888; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
-        .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; line-height: 1.4; }
-        
-        .options-grid { display: grid; gap: 10px; }
-        .opt-btn {
-            padding: 12px 15px; border: 2px solid #e0e0e0; background: white;
-            border-radius: 8px; text-align: left; cursor: pointer; font-size: 0.95rem;
-            transition: 0.2s;
+        .quiz-info { 
+            background: linear-gradient(to right, #fff3cd, #ffecb5); color: #856404; 
+            padding: 12px; border-radius: 12px; margin-bottom: 20px; 
+            text-align: center; font-weight: 600; font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; }
-        .wrong { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        .quiz-card { 
+            background: white; padding: 25px; border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 20px; 
+            animation: fadeUp 0.5s ease-out;
+        }
+        .q-number { font-size: 0.75rem; color: #aaa; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .q-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 25px; line-height: 1.5; color: #2c3e50; }
+        
+        .options-grid { display: grid; gap: 12px; }
+        .opt-btn {
+            padding: 15px 20px; border: 2px solid #f0f2f5; background: #f8f9fa;
+            border-radius: 12px; text-align: left; cursor: pointer; font-size: 1rem;
+            transition: all 0.2s; color: #555; font-weight: 500;
+        }
+        .opt-btn:active { transform: scale(0.98); }
+        
+        /* Interactive Quiz Colors */
+        .correct { 
+            background-color: #d4edda !important; border-color: #28a745 !important; 
+            color: #155724 !important; font-weight: bold;
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .wrong { 
+            background-color: #f8d7da !important; border-color: #dc3545 !important; 
+            color: #721c24 !important; 
+            animation: shake 0.4s ease-in-out;
+        }
         
         /* --- MODAL (POPUP) --- */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { 
-            background: white; width: 95%; max-width: 500px; height: 85vh; 
-            border-radius: 12px; position: relative; display: flex; flex-direction: column;
-            overflow: hidden; 
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 2000; 
+            backdrop-filter: blur(8px); /* Blur Effect */
+            justify-content: center; align-items: center; 
+            opacity: 0; transition: opacity 0.3s;
         }
+        .modal-overlay.show { opacity: 1; }
 
-        .modal-body-scroll { padding: 15px; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
+        .modal-content { 
+            background: white; width: 90%; max-width: 500px; height: 85vh; 
+            border-radius: 20px; position: relative; display: flex; flex-direction: column;
+            overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        .modal-body-scroll { padding: 20px; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
         
         /* Navigation Arrows */
         .nav-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px;
-            border-radius: 50%; font-size: 22px; cursor: pointer; z-index: 10;
+            background: white; border: none; width: 45px; height: 45px;
+            border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 10;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.2s; color: #333;
         }
-        .nav-prev { left: 10px; } .nav-next { right: 10px; }
-        .nav-btn:hover { background: white; }
+        .nav-btn:active { transform: translateY(-50%) scale(0.9); }
+        .nav-prev { left: 15px; } .nav-next { right: 15px; }
 
-        .close-icon { position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(255,255,255,0.8); width: 30px; height: 30px; text-align: center; line-height: 28px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+        .close-icon { 
+            position: absolute; top: 15px; right: 15px; z-index: 20; 
+            background: rgba(255,255,255,0.9); width: 35px; height: 35px; 
+            text-align: center; line-height: 35px; border-radius: 50%; 
+            font-size: 22px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-        /* Media & Text */
-        #m-media-container { width: 100%; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px; min-height: 200px; display:flex; align-items:center; justify-content:center;}
+        #m-media-container { 
+            width: 100%; background: #000; border-radius: 12px; overflow: hidden; 
+            margin-bottom: 20px; min-height: 200px; display:flex; 
+            align-items:center; justify-content:center; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
         #m-media-container img { width: 100%; height: auto; display: block; }
         #m-media-container iframe, #m-media-container video { width: 100%; aspect-ratio: 16/9; border: none; }
         
-        /* Slide Animation */
-        .slide-in { animation: slideInEffect 0.3s ease-out; }
+        /* Content Slide Animation */
+        .slide-in { animation: slideInEffect 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
         @keyframes slideInEffect {
-            from { opacity: 0; transform: translateX(15px); }
+            from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
         }
+
+        /* Search Input */
+        #searchGallery {
+            width: 100%; padding: 15px 20px; margin-bottom: 20px; border-radius: 30px; 
+            border: 2px solid transparent; background: white; outline: none; 
+            box-sizing: border-box; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+        #searchGallery:focus { border-color: #3498db; box-shadow: 0 4px 20px rgba(52, 152, 219, 0.15); }
+
     </style>
 </head>
 <body>
@@ -96,34 +195,41 @@
         <div class="author">by Gurwinder Singh</div>
     </div>
 
+    <!-- 1. MAIN MENU -->
     <div id="menuScreen">
-        <div style="text-align:center; padding:20px;">Loading Data...</div>
+        <div style="text-align:center; padding:50px; color:#666;">
+            <div style="font-size:2rem; margin-bottom:10px;">⚡</div>
+            Loading Scaffolding Data...
+        </div>
     </div>
 
+    <!-- 2. GALLERY SCREEN -->
     <div id="galleryScreen" class="screen">
         <div class="top-bar">
-            <button class="back-btn" onclick="showMenu()">← Back</button>
+            <button class="back-btn" onclick="showMenu()">❮ Menu</button>
             <div style="text-align:right;">
-                <div id="galleryTitleEng" style="font-weight:bold; font-size:0.9rem;"></div>
-                <div id="galleryTitleHin" style="font-size:0.8rem; color:#666;"></div>
+                <div id="galleryTitleEng" style="font-weight:bold; font-size:1rem; color:#2c3e50;"></div>
+                <div id="galleryTitleHin" style="font-size:0.8rem; color:#7f8c8d;"></div>
             </div>
         </div>
-        <input type="text" id="searchGallery" placeholder="Search / खोजें..." onkeyup="filterGallery()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:20px; border:1px solid #ccc; outline:none; box-sizing:border-box;">
+        <input type="text" id="searchGallery" placeholder="Search equipment / खोजें..." onkeyup="filterGallery()">
         <div id="galleryGrid" class="gallery-grid"></div>
     </div>
 
+    <!-- 3. QUIZ SCREEN -->
     <div id="quizScreen" class="screen">
         <div class="top-bar">
-            <button class="back-btn" onclick="showMenu()">← Exit Quiz</button>
+            <button class="back-btn" onclick="showMenu()">❮ Exit</button>
             <div style="text-align:right;">
-                <div id="quizTitleEng" style="font-weight:bold; font-size:0.9rem;"></div>
-                <div id="quizTitleHin" style="font-size:0.8rem; color:#666;"></div>
+                <div id="quizTitleEng" style="font-weight:bold; font-size:1rem; color:#2c3e50;"></div>
+                <div id="quizTitleHin" style="font-size:0.8rem; color:#7f8c8d;"></div>
             </div>
         </div>
-        <div class="quiz-info">Random 20 Questions / यादृच्छिक 20 प्रश्न</div>
+        <div class="quiz-info">🎯 Random 20 Questions / यादृच्छिक 20 प्रश्न</div>
         <div id="quizContainer"></div>
     </div>
 
+    <!-- MODAL POPUP -->
     <div id="modal" class="modal-overlay" onclick="if(event.target.id==='modal') doClose()">
         <div class="modal-content">
             <span class="close-icon" onclick="doClose()">&times;</span>
@@ -132,22 +238,22 @@
             <button class="nav-btn nav-next" onclick="navigate(1)">❯</button>
 
             <div class="modal-body-scroll" id="modalBodyScroll">
-                <div id="animContainer"> <div id="m-media-container"></div>
-                    <h2 id="m-title" style="margin: 0 0 5px 0; font-size: 1.3rem;"></h2>
-                    <span id="m-status" style="background:#6c757d; color:white; padding:3px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold;"></span>
-                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>ID:</strong> <span id="m-id"></span></p>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-                    <p id="m-specs" style="white-space: pre-wrap; color: #444; line-height: 1.5;"></p>
+                <div id="animContainer">
+                    <div id="m-media-container"></div>
+                    <h2 id="m-title" style="margin: 0 0 5px 0; font-size: 1.5rem; color:#2c3e50;"></h2>
+                    <span id="m-status" style="background:#34495e; color:white; padding:4px 10px; border-radius:6px; font-size:0.75rem; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px;"></span>
+                    <p style="margin: 10px 0; font-size: 0.95rem; color:#555;"><strong>ID REF:</strong> <span id="m-id" style="font-family:monospace; background:#eee; padding:2px 5px; border-radius:4px;"></span></p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+                    <p id="m-specs" style="white-space: pre-wrap; color: #444; line-height: 1.6; font-size:1rem;"></p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // *** PASTE YOUR DEPLOYED GOOGLE SCRIPT WEB APP URL HERE ***
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzeljdxGG8RBZ9L8hucmh9AEhw6ZwdtFcUYaj9umEoI_-m583bSwoOLkSmAN-3rRORomA/exec';
+        // *** GOOGLE SCRIPT URL ***
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxE_L-8c2RjUsE8DHSEBItLvzlQQ6nE1uxquecQAAgD0uPvWbZbeKieIzkV8Yg3nuEO/exec';
         
-        // CONFIG: English Name, Hindi Name, Type
         const MENU_ITEMS = [
             { id: 'EQUIPMENTS TRAINING', hin: 'उपकरण प्रशिक्षण', type: 'train' },
             { id: 'CUPLOK SCAFFOLDING TRAINING', hin: 'कपलोक मचान प्रशिक्षण', type: 'train' },
@@ -161,17 +267,16 @@
         ];
 
         let fullData = {};
-        let currentGalleryItems = []; // Contains currently filtered items for navigation
+        let currentGalleryItems = []; 
         let currentIndex = -1;
 
-        // INIT
         async function init() {
             try {
                 const res = await fetch(API_URL);
                 fullData = await res.json();
                 renderMenu();
             } catch (err) {
-                document.getElementById('menuScreen').innerHTML = '<div style="color:red; text-align:center; padding:20px;">Error loading data. Check Internet or URL.</div>';
+                document.getElementById('menuScreen').innerHTML = '<div style="color:red; text-align:center; padding:20px;">⚠ Connection Failed. Please Reload.</div>';
             }
         }
 
@@ -179,10 +284,11 @@
             const container = document.getElementById('menuScreen');
             container.innerHTML = '';
             
-            MENU_ITEMS.forEach(item => {
+            MENU_ITEMS.forEach((item, index) => {
                 const btn = document.createElement('div');
                 btn.className = `menu-btn ${item.type === 'quiz' ? 'btn-quiz' : 'btn-train'}`;
-                // Bilingual Button
+                // Staggered Animation Delay
+                btn.style.animationDelay = `${index * 0.05}s`;
                 btn.innerHTML = `<span class="btn-eng">${item.id}</span><span class="btn-hin">${item.hin}</span>`;
                 btn.onclick = () => openSection(item);
                 container.appendChild(btn);
@@ -191,38 +297,38 @@
 
         function showMenu() {
             document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
-            document.getElementById('menuScreen').style.display = 'grid';
+            const menu = document.getElementById('menuScreen');
+            menu.style.display = 'grid';
+            // Re-trigger animations
+            const btns = menu.querySelectorAll('.menu-btn');
+            btns.forEach(b => {
+                b.style.animationName = 'none';
+                void b.offsetWidth;
+                b.style.animationName = 'fadeUp';
+            });
         }
 
         function openSection(menuItem) {
             const rawData = fullData[menuItem.id] || [];
-            
             document.getElementById('menuScreen').style.display = 'none';
 
             if (menuItem.type === 'train') {
-                // Setup Gallery
                 document.getElementById('galleryScreen').style.display = 'block';
                 document.getElementById('galleryTitleEng').innerText = menuItem.id;
                 document.getElementById('galleryTitleHin').innerText = menuItem.hin;
-                document.getElementById('searchGallery').value = ''; // Reset search
-                
-                // For training, we start with ALL data in this category
+                document.getElementById('searchGallery').value = '';
                 currentGalleryItems = rawData; 
                 renderGallery(currentGalleryItems);
             } else {
-                // Setup Quiz
                 document.getElementById('quizScreen').style.display = 'block';
                 document.getElementById('quizTitleEng').innerText = menuItem.id;
                 document.getElementById('quizTitleHin').innerText = menuItem.hin;
-                
-                // SHUFFLE & SLICE 20
                 const shuffled = [...rawData].sort(() => 0.5 - Math.random());
                 const selectedQuestions = shuffled.slice(0, 20);
                 renderQuiz(selectedQuestions);
             }
         }
 
-        // --- TRAINING LOGIC ---
         function renderGallery(items) {
             const grid = document.getElementById('galleryGrid');
             grid.innerHTML = '';
@@ -232,7 +338,7 @@
             items.forEach((item, idx) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Pass the index relative to the CURRENT filtered list
+                card.style.animationDelay = `${idx * 0.05}s`; // Waterfall effect
                 card.onclick = () => openModal(idx);
                 
                 const imgUrl = item['Image URL'] || '';
@@ -251,7 +357,6 @@
             const categoryName = document.getElementById('galleryTitleEng').innerText;
             const allCatItems = fullData[categoryName] || [];
 
-            // Update GLOBAL filtered list
             currentGalleryItems = allCatItems.filter(item => 
                 (item.Title && item.Title.toLowerCase().includes(query)) ||
                 (item.ID && item.ID.toString().toLowerCase().includes(query))
@@ -259,34 +364,32 @@
             renderGallery(currentGalleryItems);
         }
 
-        // --- MODAL & NAVIGATION ---
+        // --- MODAL & EFFECTS ---
         function openModal(index) {
             currentIndex = index;
             updateModalContent();
-            document.getElementById('modal').style.display = 'flex';
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            // Trigger Fade In
+            setTimeout(() => modal.classList.add('show'), 10);
         }
 
         function updateModalContent() {
             if (currentIndex < 0 || currentIndex >= currentGalleryItems.length) return;
-            
             const item = currentGalleryItems[currentIndex];
             const container = document.getElementById('animContainer');
             
-            // 1. Reset Animation
             container.classList.remove('slide-in');
-            void container.offsetWidth; // Trigger reflow
+            void container.offsetWidth;
             container.classList.add('slide-in');
 
-            // 2. Auto Scroll to Top
             document.getElementById('modalBodyScroll').scrollTop = 0;
 
-            // 3. Update Text
             document.getElementById('m-title').innerText = item.Title || '';
             document.getElementById('m-id').innerText = item.ID || '';
-            document.getElementById('m-status').innerText = item.Status || 'N/A';
+            document.getElementById('m-status').innerText = item.Status || 'Active';
             document.getElementById('m-specs').innerText = item.Specs || '';
 
-            // 4. Update Media
             const viewer = document.getElementById('m-media-container');
             const url = item['Image URL'] || '';
 
@@ -309,11 +412,15 @@
         }
 
         function doClose() {
-            document.getElementById('m-media-container').innerHTML = ''; // Stop video
-            document.getElementById('modal').style.display = 'none';
+            const modal = document.getElementById('modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('m-media-container').innerHTML = '';
+                modal.style.display = 'none';
+            }, 300); // Wait for transition
         }
 
-        // --- QUIZ LOGIC ---
+        // --- QUIZ WITH EFFECTS ---
         function renderQuiz(questions) {
             const container = document.getElementById('quizContainer');
             container.innerHTML = '';
@@ -323,19 +430,17 @@
             questions.forEach((q, index) => {
                 const card = document.createElement('div');
                 card.className = 'quiz-card';
+                card.style.animationDelay = `${index * 0.1}s`;
                 
-                // Shuffle Options visually but keep track of answer
                 let opts = [
                     { txt: q['Option 1'], id: 1 }, 
                     { txt: q['Option 2'], id: 2 }, 
                     { txt: q['Option 3'], id: 3 }, 
                     { txt: q['Option 4'], id: 4 }
-                ].filter(o => o.txt); // Remove empty options
+                ].filter(o => o.txt); 
                 
-                // Render buttons
                 let btnsHtml = '';
                 opts.forEach(opt => {
-                    // Escape quotes for safety
                     const safeTxt = opt.txt.replace(/"/g, '&quot;');
                     const safeAns = (q['Correct Answer'] || '').replace(/"/g, '&quot;');
                     btnsHtml += `<button class="opt-btn" onclick="checkAnswer(this, '${safeTxt}', '${safeAns}')">${opt.txt}</button>`;
@@ -353,13 +458,12 @@
         function checkAnswer(btn, selected, correct) {
             const parent = btn.parentElement;
             const allBtns = parent.querySelectorAll('.opt-btn');
-            allBtns.forEach(b => b.disabled = true); // Lock all
+            allBtns.forEach(b => b.disabled = true); 
 
             if (selected.trim().toLowerCase() === correct.trim().toLowerCase()) {
-                btn.classList.add('correct');
+                btn.classList.add('correct'); // Triggers POP animation
             } else {
-                btn.classList.add('wrong');
-                // Auto-highlight the right answer
+                btn.classList.add('wrong'); // Triggers SHAKE animation
                 allBtns.forEach(b => {
                     if (b.innerText.trim().toLowerCase() === correct.trim().toLowerCase()) {
                         b.classList.add('correct');
