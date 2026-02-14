@@ -15,6 +15,10 @@
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Special Coffee Button Animation */
+        .coffee-float { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 pb-10">
@@ -57,11 +61,6 @@
                 <button onclick="startQuiz()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 text-left font-medium transition-colors">
                     <i data-lucide="trophy"></i> नॉलेज टेस्ट (Quiz)
                 </button>
-                <div class="pt-4 mt-4 border-t border-slate-100">
-                    <button onclick="openSupport()" class="w-full flex items-center gap-3 p-3 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 text-left font-bold transition-colors">
-                        <i data-lucide="coffee"></i> Buy Me a Coffee
-                    </button>
-                </div>
             </nav>
             <div class="absolute bottom-10 left-6 right-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-xs text-yellow-800">
                 <p class="font-bold mb-1">सुरक्षा पहले!</p>
@@ -73,6 +72,22 @@
     <!-- Container for Views -->
     <div id="app-content">
         <!-- Views will be injected here -->
+    </div>
+
+    <!-- FLOATING COFFEE BUTTON (ON EVERY PAGE) -->
+    <div id="coffee-fab" class="fixed bottom-6 right-6 z-50 flex flex-col items-center cursor-pointer group" onclick="openSupport()">
+        <!-- Animated Text Bubble -->
+        <div class="mb-1 coffee-float">
+            <div class="bg-yellow-400 text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap relative border border-yellow-500">
+                BUY ME A COFFEE
+                <!-- Tiny Triangle for speech bubble effect -->
+                <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-yellow-400 rotate-45 border-b border-r border-yellow-500"></div>
+            </div>
+        </div>
+        <!-- Coffee Cup Icon -->
+        <div class="bg-slate-900 text-white p-3.5 rounded-full shadow-2xl border-2 border-yellow-400 hover:scale-110 hover:bg-slate-800 transition-all duration-300">
+            <i data-lucide="coffee" style="width: 24px; height: 24px;"></i>
+        </div>
     </div>
 
     <!-- Item Detail Modal Overlay -->
@@ -91,7 +106,7 @@
         // YOUR UPI DETAILS
         // ---------------------------------------------------------
         const UPI_ID = "gurwinders774@fifederal"; // आपकी UPI ID
-        const PAYEE_NAME = "THANKS"; // आपका नाम
+        const PAYEE_NAME = "Happy To Help"; // आपका नाम
         // ---------------------------------------------------------
 
         // Fallback data
@@ -250,15 +265,8 @@
 
         // --- Support Logic (Direct Redirect) ---
         function openSupport() {
-            // Close sidebar if it's open
-            if (state.sidebarOpen) {
-                state.sidebarOpen = false;
-                document.getElementById('sidebar-overlay').classList.add('hidden');
-            }
-
             // Generate UPI Link
             const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
-            
             // Redirect directly to UPI intent
             window.location.href = upiLink;
         }
@@ -316,12 +324,6 @@
                                 </div>
                             </button>
                         </div>
-
-                        <!-- Support Button in Main View -->
-                        <button onclick="openSupport()" class="w-full mt-4 bg-slate-900 text-white p-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 hover:bg-slate-800 transition-colors">
-                            <i data-lucide="coffee"></i>
-                            <span class="font-bold">Buy Me a Coffee</span>
-                        </button>
                     </main>
                 `;
             } 
@@ -330,7 +332,7 @@
             else if (state.view === 'equipment') {
                 const hasEquip = state.equipment.length > 0;
                 html = `
-                    <main class="p-4 max-w-2xl mx-auto space-y-4 fade-in">
+                    <main class="p-4 max-w-2xl mx-auto space-y-4 fade-in pb-20">
                         <div class="flex justify-between items-center mb-4">
                             <div>
                                 <h2 class="text-2xl font-black text-slate-800">उपकरण गैलरी</h2>
@@ -377,7 +379,7 @@
                 const filtered = state.filter === 'All' ? state.questions : state.questions.filter(q => q.cat === state.filter);
                 
                 html = `
-                    <main class="p-4 max-w-xl mx-auto space-y-6 fade-in">
+                    <main class="p-4 max-w-xl mx-auto space-y-6 fade-in pb-20">
                         <div class="sticky top-[72px] z-30 bg-slate-50/95 backdrop-blur py-2">
                             <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
                                 ${categories.map(cat => `
@@ -401,9 +403,9 @@
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="fixed bottom-6 right-6">
-                            <button onclick="navigate('home')" class="bg-slate-900 text-white p-4 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-800">
-                                <i data-lucide="home"></i>
+                        <div class="flex justify-center mt-4">
+                            <button onclick="navigate('home')" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-300">
+                                <i data-lucide="home" style="width:16px; height:16px;"></i> मुख्य पृष्ठ
                             </button>
                         </div>
                     </main>
@@ -416,7 +418,7 @@
                 const progress = ((state.currentIdx + 1) / state.userSelections.length) * 100;
 
                 html = `
-                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 text-center fade-in">
+                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 text-center fade-in pb-20">
                         <div class="flex items-center justify-between mb-2">
                             <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">प्रश्न ${state.currentIdx + 1} / ${state.userSelections.length}</h2>
                             <div class="bg-yellow-100 px-3 py-1 rounded-full text-yellow-800 font-bold text-xs">स्कोर: ${state.score}</div>
@@ -450,7 +452,7 @@
                 let color = percentage >= 80 ? "text-green-500" : percentage >= 50 ? "text-yellow-500" : "text-slate-400";
 
                 html = `
-                    <main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 fade-in">
+                    <main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 fade-in pb-20">
                         <div class="relative">
                             <svg class="w-48 h-48 transform -rotate-90">
                                 <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-200" />
@@ -485,3 +487,5 @@
     </script>
 </body>
 </html>
+
+
