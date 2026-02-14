@@ -80,11 +80,6 @@
         <!-- Content injected via JS -->
     </div>
 
-    <!-- Support/Payment Modal Overlay (Content generated dynamically in openSupport) -->
-    <div id="support-modal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeSupport()">
-        <!-- Content injected via JS -->
-    </div>
-
     <script>
         // ---------------------------------------------------------
         // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
@@ -96,7 +91,7 @@
         // YOUR UPI DETAILS
         // ---------------------------------------------------------
         const UPI_ID = "gurwinders774@fifederal"; // आपकी UPI ID
-        const PAYEE_NAME = "Thanks"; // आपका नाम
+        const PAYEE_NAME = "THANKS"; // आपका नाम
         // ---------------------------------------------------------
 
         // Fallback data
@@ -253,66 +248,19 @@
             lucide.createIcons();
         }
 
-        // --- Support Modal Logic (UPDATED) ---
+        // --- Support Logic (Direct Redirect) ---
         function openSupport() {
-            const modal = document.getElementById('support-modal');
-            
+            // Close sidebar if it's open
+            if (state.sidebarOpen) {
+                state.sidebarOpen = false;
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+            }
+
             // Generate UPI Link
             const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
-            // Generate QR using API based on UPI Link
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
-
-            modal.innerHTML = `
-                <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in duration-200 text-center p-6" onclick="event.stopPropagation()">
-                    <button onclick="closeSupport()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800">
-                        <i data-lucide="x"></i>
-                    </button>
-                    
-                    <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="coffee" style="width:32px;height:32px;"></i>
-                    </div>
-                    
-                    <h3 class="text-2xl font-black text-slate-800 mb-2">Buy Me a Coffee</h3>
-                    <p class="text-slate-500 text-sm mb-4">अगर आपको यह ऐप पसंद आया, तो आप मुझे सपोर्ट कर सकते हैं।</p>
-                    
-                    <!-- Direct UPI Button -->
-                    <a href="${upiLink}" class="w-full mb-6 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
-                        <span>Pay via UPI App</span>
-                        <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
-                    </a>
-
-                    <!-- QR CODE SECTION -->
-                    <div class="relative mb-4">
-                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-                        <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400">OR SCAN QR</span></div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-xl border-2 border-slate-100 mb-4 inline-block shadow-sm">
-                        <img src="${qrUrl}" 
-                             alt="Payment QR Code" 
-                             class="w-32 h-32 object-contain mx-auto mix-blend-multiply">
-                    </div>
-
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">
-                        <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">UPI ID</p>
-                        <div class="flex items-center justify-center gap-2">
-                            <code class="text-slate-800 font-mono font-bold select-all">${UPI_ID}</code>
-                            <button onclick="navigator.clipboard.writeText('${UPI_ID}')" class="text-blue-600 hover:text-blue-800">
-                                <i data-lucide="copy" style="width:16px;height:16px;"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            modal.classList.remove('hidden');
-            state.sidebarOpen = false;
-            document.getElementById('sidebar-overlay').classList.add('hidden');
-            lucide.createIcons();
-        }
-
-        function closeSupport() {
-            document.getElementById('support-modal').classList.add('hidden');
+            
+            // Redirect directly to UPI intent
+            window.location.href = upiLink;
         }
 
         // --- Render Logic ---
