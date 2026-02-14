@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScaffoldMaster Training App</title>
+    <title>ScaffoldMaster - By Gurwinder Singh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -27,7 +27,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight">ScaffoldMaster</h1>
-                <p class="text-[10px] uppercase tracking-widest text-yellow-500 font-semibold text-left">Training App</p>
+                <p class="text-[10px] uppercase tracking-widest text-yellow-500 font-semibold text-left">By Gurwinder Singh</p>
             </div>
         </div>
         <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-800 rounded-full">
@@ -57,6 +57,11 @@
                 <button onclick="startQuiz()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 text-left font-medium transition-colors">
                     <i data-lucide="trophy"></i> नॉलेज टेस्ट (Quiz)
                 </button>
+                <div class="pt-4 mt-4 border-t border-slate-100">
+                    <button onclick="openSupport()" class="w-full flex items-center gap-3 p-3 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 text-left font-bold transition-colors">
+                        <i data-lucide="coffee"></i> Buy Me a Coffee
+                    </button>
+                </div>
             </nav>
             <div class="absolute bottom-10 left-6 right-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-xs text-yellow-800">
                 <p class="font-bold mb-1">सुरक्षा पहले!</p>
@@ -73,6 +78,42 @@
     <!-- Item Detail Modal Overlay -->
     <div id="item-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeItem()">
         <!-- Content injected via JS -->
+    </div>
+
+    <!-- Support/Payment Modal Overlay -->
+    <div id="support-modal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeSupport()">
+        <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in duration-200 text-center p-6" onclick="event.stopPropagation()">
+            <button onclick="closeSupport()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800">
+                <i data-lucide="x"></i>
+            </button>
+            
+            <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="coffee" style="width:32px;height:32px;"></i>
+            </div>
+            
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Buy Me a Coffee</h3>
+            <p class="text-slate-500 text-sm mb-6">अगर आपको यह ऐप पसंद आया, तो आप मुझे सपोर्ट कर सकते हैं।</p>
+            
+            <!-- QR CODE SECTION -->
+            <div class="bg-white p-4 rounded-xl border-2 border-slate-100 mb-4 inline-block shadow-sm">
+                <!-- REPLACE THE SRC BELOW WITH YOUR ACTUAL QR CODE IMAGE URL -->
+                <img src="https://drive.google.com/file/d/1wyKw_BUB2YHWJhImFTAjWq7qR6sqKdDs/view?usp=drive_link" 
+                     alt="Payment QR Code" 
+                     class="w-40 h-40 object-contain mx-auto mix-blend-multiply">
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
+                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">UPI ID</p>
+                <div class="flex items-center justify-center gap-2">
+                    <code class="text-slate-800 font-mono font-bold select-all">gurwinder@upi</code>
+                    <button onclick="navigator.clipboard.writeText('gurwinder@upi')" class="text-blue-600 hover:text-blue-800">
+                        <i data-lucide="copy" style="width:16px;height:16px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-400 mt-4">Scan using PhonePe, GPay, or Paytm</p>
+        </div>
     </div>
 
     <script>
@@ -223,6 +264,18 @@
             lucide.createIcons();
         }
 
+        // --- Support Modal Logic ---
+        function openSupport() {
+            document.getElementById('support-modal').classList.remove('hidden');
+            state.sidebarOpen = false;
+            document.getElementById('sidebar-overlay').classList.add('hidden');
+            lucide.createIcons();
+        }
+
+        function closeSupport() {
+            document.getElementById('support-modal').classList.add('hidden');
+        }
+
         // --- Render Logic ---
         function render() {
             const container = document.getElementById('app-content');
@@ -247,7 +300,7 @@
                     : '';
 
                 html = `
-                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 fade-in">
+                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 fade-in pb-20">
                         <section class="text-center space-y-2">
                             <h2 class="text-3xl font-black text-slate-800">नमस्ते, स्कैफोल्डर!</h2>
                             <p class="text-slate-500">सुरक्षित कार्य ही हमारी प्राथमिकता है।</p>
@@ -276,6 +329,12 @@
                                 </div>
                             </button>
                         </div>
+
+                        <!-- Support Button in Main View -->
+                        <button onclick="openSupport()" class="w-full mt-4 bg-slate-900 text-white p-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 hover:bg-slate-800 transition-colors">
+                            <i data-lucide="coffee"></i>
+                            <span class="font-bold">Buy Me a Coffee</span>
+                        </button>
                     </main>
                 `;
             } 
