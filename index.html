@@ -80,40 +80,9 @@
         <!-- Content injected via JS -->
     </div>
 
-    <!-- Support/Payment Modal Overlay -->
+    <!-- Support/Payment Modal Overlay (Content generated dynamically in openSupport) -->
     <div id="support-modal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeSupport()">
-        <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in duration-200 text-center p-6" onclick="event.stopPropagation()">
-            <button onclick="closeSupport()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800">
-                <i data-lucide="x"></i>
-            </button>
-            
-            <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="coffee" style="width:32px;height:32px;"></i>
-            </div>
-            
-            <h3 class="text-2xl font-black text-slate-800 mb-2">Buy Me a Coffee</h3>
-            <p class="text-slate-500 text-sm mb-6">अगर आपको यह ऐप पसंद आया, तो आप मुझे सपोर्ट कर सकते हैं।</p>
-            
-            <!-- QR CODE SECTION -->
-            <div class="bg-white p-4 rounded-xl border-2 border-slate-100 mb-4 inline-block shadow-sm">
-                <!-- UPDATED QR CODE LINK -->
-                <img src="https://lh3.googleusercontent.com/d/1wyKw_BUB2YHWJhImFTAjWq7qR6sqKdDs" 
-                     alt="Payment QR Code" 
-                     class="w-40 h-40 object-contain mx-auto mix-blend-multiply">
-            </div>
-
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
-                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">UPI ID</p>
-                <div class="flex items-center justify-center gap-2">
-                    <code class="text-slate-800 font-mono font-bold select-all">gurwinders774@fifederal</code>
-                    <button onclick="navigator.clipboard.writeText('gurwinders774@fifederal')" class="text-blue-600 hover:text-blue-800">
-                        <i data-lucide="copy" style="width:16px;height:16px;"></i>
-                    </button>
-                </div>
-            </div>
-
-            <p class="text-xs text-slate-400 mt-4">Scan using PhonePe, GPay, or Paytm</p>
-        </div>
+        <!-- Content injected via JS -->
     </div>
 
     <script>
@@ -121,6 +90,13 @@
         // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
         // ---------------------------------------------------------
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4FLd0mdJRn_4penuuIZdpReRSZLclucTt5WfGZGsCslZDvag3fX8w62AvlbBYASGb/exec"; 
+        // ---------------------------------------------------------
+
+        // ---------------------------------------------------------
+        // YOUR UPI DETAILS
+        // ---------------------------------------------------------
+        const UPI_ID = "gurwinders774@fifederal"; // आपकी UPI ID
+        const PAYEE_NAME = "Thanks"; // आपका नाम
         // ---------------------------------------------------------
 
         // Fallback data
@@ -147,18 +123,12 @@
         // --- Image Processor for Drive Links ---
         function processImageUrl(url) {
             if (!url) return null;
-            
-            // Check if it's a Google Drive/Docs link
             if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
-                // Try to match the ID pattern /d/FILE_ID
                 const idMatch = url.match(/\/d\/([^/]+)/);
                 if (idMatch && idMatch[1]) {
-                    // Convert to a direct viewable link using lh3.googleusercontent.com
-                    // This is generally reliable for public files
                     return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
                 }
             }
-            // Return original URL if it's not a Drive link or ID couldn't be extracted
             return url;
         }
 
@@ -237,7 +207,6 @@
 
         // --- Equipment Modal Logic ---
         function viewItem(id) {
-            // Find item by ID (handling string/number types)
             const item = state.equipment.find(e => e.id == id);
             if (item) {
                 state.selectedItem = item;
@@ -256,7 +225,6 @@
             
             if (!item) return;
 
-            // USE processImageUrl HERE
             const imgUrl = processImageUrl(item.image);
 
             modal.innerHTML = `
@@ -285,9 +253,59 @@
             lucide.createIcons();
         }
 
-        // --- Support Modal Logic ---
+        // --- Support Modal Logic (UPDATED) ---
         function openSupport() {
-            document.getElementById('support-modal').classList.remove('hidden');
+            const modal = document.getElementById('support-modal');
+            
+            // Generate UPI Link
+            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
+            // Generate QR using API based on UPI Link
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in duration-200 text-center p-6" onclick="event.stopPropagation()">
+                    <button onclick="closeSupport()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-800">
+                        <i data-lucide="x"></i>
+                    </button>
+                    
+                    <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="coffee" style="width:32px;height:32px;"></i>
+                    </div>
+                    
+                    <h3 class="text-2xl font-black text-slate-800 mb-2">Buy Me a Coffee</h3>
+                    <p class="text-slate-500 text-sm mb-4">अगर आपको यह ऐप पसंद आया, तो आप मुझे सपोर्ट कर सकते हैं।</p>
+                    
+                    <!-- Direct UPI Button -->
+                    <a href="${upiLink}" class="w-full mb-6 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
+                        <span>Pay via UPI App</span>
+                        <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+                    </a>
+
+                    <!-- QR CODE SECTION -->
+                    <div class="relative mb-4">
+                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+                        <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400">OR SCAN QR</span></div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border-2 border-slate-100 mb-4 inline-block shadow-sm">
+                        <img src="${qrUrl}" 
+                             alt="Payment QR Code" 
+                             class="w-32 h-32 object-contain mx-auto mix-blend-multiply">
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2">
+                        <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">UPI ID</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <code class="text-slate-800 font-mono font-bold select-all">${UPI_ID}</code>
+                            <button onclick="navigator.clipboard.writeText('${UPI_ID}')" class="text-blue-600 hover:text-blue-800">
+                                <i data-lucide="copy" style="width:16px;height:16px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
             state.sidebarOpen = false;
             document.getElementById('sidebar-overlay').classList.add('hidden');
             lucide.createIcons();
