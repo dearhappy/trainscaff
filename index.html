@@ -314,14 +314,17 @@
             lucide.createIcons();
         }
 
-        // --- Support Logic ---
+        // --- Support Logic (CRITICAL FIX FOR P2P PAYMENTS) ---
         function openSupport() {
             if (state.sidebarOpen) {
                 state.sidebarOpen = false;
                 document.getElementById('sidebar-overlay').classList.add('hidden');
             }
-            const tr = Math.floor(Math.random() * 1000000000);
-            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&mc=0000&mode=00&tn=BuyMeACoffee&tr=${tr}&cu=INR`;
+
+            // CLEAN P2P LINK: NO merchant codes, NO tr, NO mode
+            // This is the most compatible format for personal UPI IDs
+            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&tn=Coffee&cu=INR`;
+            
             window.location.href = upiLink;
         }
 
