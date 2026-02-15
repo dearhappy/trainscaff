@@ -13,50 +13,9 @@
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0f172a;
-            /* Professional Mesh Gradient */
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        
-        .ios-scroll { -webkit-overflow-scrolling: touch; }
-        
-        /* Glassmorphism Effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .loader {
-            border-top-color: #fbbf24;
-            animation: spinner 1s linear infinite;
-        }
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Staggered Fade In */
-        .app-card-entry {
-            animation: fadeInUp 0.5s ease-out forwards;
-            opacity: 0;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
         }
 
         /* Ticker Animation */
@@ -67,26 +26,34 @@
         .ticker-content {
             display: inline-block;
             padding-left: 100%;
-            animation: ticker 30s linear infinite;
+            animation: ticker 25s linear infinite;
         }
         @keyframes ticker {
             0% { transform: translate(0, 0); }
             100% { transform: translate(-100%, 0); }
         }
 
-        .coffee-float { animation: float 4s ease-in-out infinite; }
-        @keyframes float { 
-            0%, 100% { transform: translateY(0px); } 
-            50% { transform: translateY(-10px); } 
+        /* Simple Spinner */
+        .loader {
+            border-top-color: #3b82f6;
+            animation: spinner 0.8s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .search-glow:focus-within {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-            border-color: rgba(59, 130, 246, 0.5);
+        /* Standard Transition */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
-<body class="text-white h-screen w-screen overflow-hidden">
+<body class="text-slate-900 h-screen w-screen overflow-hidden">
     <div id="root" class="h-full w-full"></div>
 
     <script type="text/babel">
@@ -100,17 +67,17 @@
             if (!supporters || supporters.length === 0) return null;
             
             return (
-                <div className="bg-black/40 backdrop-blur-md border-b border-white/10 py-2 ticker-container">
+                <div className="bg-slate-900 py-2 ticker-container">
                     <div className="ticker-content">
                         {supporters.map((s, i) => (
-                            <span key={i} className="mx-12 text-[11px] font-bold text-yellow-400 uppercase tracking-widest">
-                                TOP SUPPORTER: <span className="text-white ml-1">{s.name}</span> <span className="text-emerald-400 ml-2">₹{s.amount}</span>
+                            <span key={i} className="mx-12 text-xs font-bold text-yellow-400">
+                                TOP SUPPORTER: <span className="text-white">{s.name}</span> <span className="text-emerald-400">₹{s.amount}</span>
                             </span>
                         ))}
                         {/* Repeat for seamless loop */}
                         {supporters.map((s, i) => (
-                            <span key={`dup-${i}`} className="mx-12 text-[11px] font-bold text-yellow-400 uppercase tracking-widest">
-                                TOP SUPPORTER: <span className="text-white ml-1">{s.name}</span> <span className="text-emerald-400 ml-2">₹{s.amount}</span>
+                            <span key={`dup-${i}`} className="mx-12 text-xs font-bold text-yellow-400">
+                                TOP SUPPORTER: <span className="text-white">{s.name}</span> <span className="text-emerald-400">₹{s.amount}</span>
                             </span>
                         ))}
                     </div>
@@ -118,42 +85,23 @@
             );
         };
 
-        const Header = ({ onSearch, searchTerm }) => (
-            <div className="px-6 py-6 sticky top-0 z-20">
-                <div className="max-w-md mx-auto relative group search-glow bg-white/5 rounded-2xl border border-white/10 transition-all duration-300">
-                    <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-blue-400 transition-colors"></i>
-                    <input 
-                        type="text" 
-                        placeholder="Search your applications..." 
-                        value={searchTerm}
-                        onChange={(e) => onSearch(e.target.value)}
-                        className="w-full bg-transparent border-none rounded-2xl pl-12 pr-4 py-4 text-sm focus:ring-0 outline-none placeholder:text-white/20 text-white"
-                    />
-                </div>
+        const RedirectOverlay = ({ appName }) => (
+            <div className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center fade-in">
+                <div className="loader rounded-full border-4 border-slate-100 h-16 w-16 mb-6"></div>
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">Here you go...</h2>
+                <p className="text-slate-500">Opening {appName}</p>
             </div>
         );
 
-        const AppCard = ({ name, url, index }) => {
-            const handleClick = () => {
-                if (url) window.location.href = url;
-            };
-
+        const AppCard = ({ name, url, onLaunch }) => {
             return (
                 <button 
-                    onClick={handleClick} 
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                    className="app-card-entry glass group relative p-8 rounded-[2rem] active:scale-95 hover:bg-white/10 hover:border-white/30 transition-all duration-300 flex flex-col items-center justify-center min-h-[140px] w-full"
+                    onClick={() => onLaunch(name, url)} 
+                    className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm active:bg-slate-50 transition-colors flex flex-col items-center justify-center min-h-[120px] w-full"
                 >
-                    {/* Decorative Corner Accent */}
-                    <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-white/20 group-hover:bg-blue-400 transition-colors"></div>
-                    
-                    <span className="text-lg font-extrabold text-white text-center leading-tight tracking-tight group-hover:scale-105 transition-transform">
+                    <span className="text-lg font-bold text-slate-800 text-center uppercase tracking-tight">
                         {name}
                     </span>
-                    
-                    <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[10px] font-bold text-blue-400 tracking-tighter uppercase">
-                        Launch Application <i className="fa-solid fa-chevron-right ml-2"></i>
-                    </div>
                 </button>
             );
         };
@@ -166,17 +114,13 @@
             };
 
             return (
-                <div className="fixed bottom-8 right-8 z-50 flex flex-col items-center cursor-pointer group" onClick={openSupport}>
-                    <div className="mb-3 coffee-float">
-                        <div className="bg-yellow-400 text-slate-900 text-[10px] font-black px-4 py-2 rounded-xl shadow-xl whitespace-nowrap relative border border-yellow-500 tracking-tighter">
-                            BUY ME A COFFEE
-                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-yellow-400 rotate-45 border-b border-r border-yellow-500"></div>
-                        </div>
-                    </div>
-                    <div className="bg-white text-slate-900 p-5 rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.2)] border-2 border-transparent hover:border-yellow-400 hover:scale-110 transition-all duration-300">
-                        <i className="fa-solid fa-mug-hot text-xl"></i>
-                    </div>
-                </div>
+                <button 
+                    className="fixed bottom-6 right-6 z-50 flex items-center bg-yellow-400 text-slate-900 px-4 py-3 rounded-full shadow-lg font-bold text-sm border-2 border-yellow-500 active:scale-95 transition-transform"
+                    onClick={openSupport}
+                >
+                    <i className="fa-solid fa-mug-hot mr-2"></i>
+                    BUY ME A COFFEE
+                </button>
             );
         };
 
@@ -186,6 +130,7 @@
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
             const [searchTerm, setSearchTerm] = useState("");
+            const [redirecting, setRedirecting] = useState(null);
 
             useEffect(() => {
                 const fetchData = async () => {
@@ -204,8 +149,7 @@
                             setSupporters(data.supporters || []);
                         }
                     } catch (err) {
-                        console.error("Fetch error:", err);
-                        setError("Secure Connection Failed");
+                        setError("Failed to load data.");
                     } finally {
                         setLoading(false);
                     }
@@ -213,42 +157,63 @@
                 fetchData();
             }, []);
 
+            const handleLaunch = (name, url) => {
+                setRedirecting({ name, url });
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 2000);
+            };
+
             const filteredApps = useMemo(() => {
                 return apps.filter(app => 
                     app.name.toLowerCase().includes(searchTerm.toLowerCase())
                 );
             }, [apps, searchTerm]);
 
+            if (redirecting) {
+                return <RedirectOverlay appName={redirecting.name} />;
+            }
+
             return (
-                <div className="h-full flex flex-col max-w-lg mx-auto overflow-hidden relative border-x border-white/5">
+                <div className="h-full flex flex-col max-w-lg mx-auto bg-white border-x border-slate-200 overflow-hidden relative">
                     <Ticker supporters={supporters} />
-                    <Header searchTerm={searchTerm} onSearch={setSearchTerm} />
                     
-                    <main className="flex-1 overflow-y-auto ios-scroll px-6 pb-32">
+                    <div className="px-6 py-6 border-b border-slate-100">
+                        <div className="relative">
+                            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input 
+                                type="text" 
+                                placeholder="Search apps..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+                    
+                    <main className="flex-1 overflow-y-auto ios-scroll px-6 py-6 bg-slate-50 pb-32">
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center h-64 text-white/30">
-                                <div className="loader ease-linear rounded-full border-2 border-white/10 h-12 w-12 mb-6"></div>
-                                <p className="text-sm font-bold tracking-widest uppercase">Initializing Hub</p>
+                            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+                                <div className="loader rounded-full border-4 border-slate-200 h-10 w-10 mb-4"></div>
+                                <p className="text-sm font-medium">Loading...</p>
                             </div>
                         ) : error ? (
-                            <div className="text-center p-12 glass rounded-[2.5rem] mt-10">
-                                <i className="fa-solid fa-circle-nodes text-4xl text-blue-500 mb-6 block"></i>
-                                <h3 className="text-white font-black text-xl mb-2 tracking-tight">Access Error</h3>
-                                <p className="text-white/40 text-xs">{error}</p>
+                            <div className="text-center p-10 bg-red-50 rounded-xl border border-red-100">
+                                <p className="text-red-600 text-sm font-bold">{error}</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 gap-5">
+                            <div className="grid grid-cols-1 gap-4">
                                 {filteredApps.map((app, index) => (
                                     <AppCard 
                                         key={index} 
-                                        index={index}
                                         name={app.name} 
                                         url={app.url} 
+                                        onLaunch={handleLaunch}
                                     />
                                 ))}
                                 {filteredApps.length === 0 && (
-                                    <div className="text-center py-20 text-white/20">
-                                        <p className="text-sm italic">No matching apps found</p>
+                                    <div className="text-center py-10 text-slate-400 text-sm">
+                                        No apps found.
                                     </div>
                                 )}
                             </div>
