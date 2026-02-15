@@ -19,6 +19,13 @@
         /* Special Coffee Button Animation */
         .coffee-float { animation: float 3s ease-in-out infinite; }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+
+        /* Modal Content Transition */
+        .content-enter { animation: contentEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes contentEnter {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 pb-10">
@@ -91,22 +98,17 @@
     </div>
 
     <!-- Item Detail Modal Overlay -->
-    <div id="item-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeItem()">
+    <div id="item-modal" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center p-2 backdrop-blur-sm transition-opacity" onclick="closeItem()">
         <!-- Content injected via JS -->
     </div>
 
     <script>
         // ---------------------------------------------------------
-        // CONFIGURATION SECTION (Updated by AI)
+        // CONFIGURATION SECTION
         // ---------------------------------------------------------
-        
-        // 1. Google Apps Script Web App URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4FLd0mdJRn_4penuuIZdpReRSZLclucTt5WfGZGsCslZDvag3fX8w62AvlbBYASGb/exec"; 
-
-        // 2. UPI Payment Details
-        const UPI_ID = "dearhappy@sbi";      // आपकी नई UPI ID
-        const PAYEE_NAME = "Gurwinder Singh";  // आपका नाम
-        
+        const UPI_ID = "dearhappy@sbi";
+        const PAYEE_NAME = "Gurwinder Singh";
         // ---------------------------------------------------------
 
         // Fallback data
@@ -127,7 +129,8 @@
             sidebarOpen: false,
             loading: false,
             dataLoaded: false,
-            selectedItem: null // For equipment modal
+            selectedItem: null,
+            selectedItemIndex: -1 // Track index for Next/Prev
         };
 
         // --- Image Processor for Drive Links ---
@@ -145,20 +148,13 @@
         // --- Data Fetching Logic ---
         async function fetchSheetData() {
             if (!SCRIPT_URL) return;
-
             state.loading = true;
             render(); 
-
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                
-                if (data.questions && data.questions.length > 0) {
-                    state.questions = data.questions;
-                }
-                if (data.equipment && data.equipment.length > 0) {
-                    state.equipment = data.equipment;
-                }
+                if (data.questions && data.questions.length > 0) state.questions = data.questions;
+                if (data.equipment && data.equipment.length > 0) state.equipment = data.equipment;
                 state.dataLoaded = true;
             } catch (error) {
                 console.error("Data fetch error");
@@ -172,11 +168,8 @@
         function toggleSidebar() {
             state.sidebarOpen = !state.sidebarOpen;
             const overlay = document.getElementById('sidebar-overlay');
-            if (state.sidebarOpen) {
-                overlay.classList.remove('hidden');
-            } else {
-                overlay.classList.add('hidden');
-            }
+            if (state.sidebarOpen) overlay.classList.remove('hidden');
+            else overlay.classList.add('hidden');
             lucide.createIcons();
         }
 
@@ -215,19 +208,44 @@
             render();
         }
 
-        // --- Equipment Modal Logic ---
+        // --- Equipment Modal Logic (Updated for Nav) ---
         function viewItem(id) {
-            const item = state.equipment.find(e => e.id == id);
-            if (item) {
-                state.selectedItem = item;
+            const index = state.equipment.findIndex(e => e.id == id);
+            if (index !== -1) {
+                state.selectedItemIndex = index;
+                state.selectedItem = state.equipment[index];
                 renderModal();
             }
         }
 
+        function navItem(direction) {
+            // Stop event bubbling if called from button
+            if(event) event.stopPropagation();
+
+            let newIndex = state.selectedItemIndex + direction;
+            // Loop navigation
+            if (newIndex < 0) newIndex = state.equipment.length - 1;
+            if (newIndex >= state.equipment.length) newIndex = 0;
+            
+            state.selectedItemIndex = newIndex;
+            state.selectedItem = state.equipment[newIndex];
+            renderModal();
+        }
+
         function closeItem() {
             state.selectedItem = null;
+            state.selectedItemIndex = -1;
             document.getElementById('item-modal').classList.add('hidden');
         }
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', function(event) {
+            if (!document.getElementById('item-modal').classList.contains('hidden')) {
+                if (event.key === "ArrowLeft") navItem(-1);
+                if (event.key === "ArrowRight") navItem(1);
+                if (event.key === "Escape") closeItem();
+            }
+        });
 
         function renderModal() {
             const modal = document.getElementById('item-modal');
@@ -238,22 +256,37 @@
             const imgUrl = processImageUrl(item.image);
 
             modal.innerHTML = `
-                <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative animate-in zoom-in duration-200 flex flex-col max-h-[85vh] m-4" onclick="event.stopPropagation()">
+                <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh] content-enter" onclick="event.stopPropagation()">
                     
-                    <!-- Floating Close Icon (Top Right) -->
-                    <button onclick="closeItem()" class="absolute top-3 right-3 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 z-20 backdrop-blur-md transition-colors">
-                        <i data-lucide="x"></i>
+                    <!-- Floating Close Icon -->
+                    <button onclick="closeItem()" class="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 z-20 backdrop-blur-md transition-all active:scale-95 shadow-lg">
+                        <i data-lucide="x" style="width:20px;height:20px;"></i>
                     </button>
 
-                    <!-- Image Section (Fixed height, shrinks if needed) -->
-                    <div class="relative h-64 shrink-0 bg-slate-100 w-full rounded-t-2xl overflow-hidden">
+                    <!-- Image Section with Arrows -->
+                    <div class="relative h-64 shrink-0 bg-slate-100 w-full rounded-t-2xl overflow-hidden group">
                         ${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400?text=No+Image'"/>` : `<div class="w-full h-full flex items-center justify-center text-slate-400"><i data-lucide="image" style="width:48px;height:48px;"></i></div>`}
+                        
+                        <!-- Navigation Arrows (Over Image) -->
+                        <div class="absolute inset-0 flex items-center justify-between px-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                            <button onclick="navItem(-1)" class="bg-white/80 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg backdrop-blur-sm transition-transform active:scale-90 border border-slate-200">
+                                <i data-lucide="chevron-left" style="width:24px;height:24px;"></i>
+                            </button>
+                            <button onclick="navItem(1)" class="bg-white/80 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg backdrop-blur-sm transition-transform active:scale-90 border border-slate-200">
+                                <i data-lucide="chevron-right" style="width:24px;height:24px;"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Gradient Overlay at bottom for better text contrast if needed -->
+                        <div class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
                     </div>
 
                     <!-- Scrollable Content Section -->
-                    <div class="p-6 overflow-y-auto">
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">Equipment #${item.id}</span>
+                    <div class="p-6 overflow-y-auto custom-scrollbar">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
+                                ${state.selectedItemIndex + 1} / ${state.equipment.length}
+                            </span>
                         </div>
                         
                         <h3 class="text-2xl font-bold text-slate-800 mb-3 leading-tight">${item.name}</h3>
@@ -264,9 +297,15 @@
                     </div>
 
                     <!-- Fixed Footer with Close Button -->
-                    <div class="p-4 border-t border-slate-100 bg-white shrink-0 rounded-b-2xl">
-                        <button onclick="closeItem()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg active:scale-95 transform transition-transform">
+                    <div class="p-4 border-t border-slate-100 bg-white shrink-0 rounded-b-2xl flex gap-3">
+                         <button onclick="navItem(-1)" class="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 md:hidden">
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <button onclick="closeItem()" class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg active:scale-95 transform transition-transform">
                             बंद करें
+                        </button>
+                        <button onclick="navItem(1)" class="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 md:hidden">
+                            <i data-lucide="chevron-right"></i>
                         </button>
                     </div>
                 </div>
@@ -275,21 +314,14 @@
             lucide.createIcons();
         }
 
-        // --- Support Logic (Direct Redirect) ---
+        // --- Support Logic ---
         function openSupport() {
-            // Close sidebar if it's open
             if (state.sidebarOpen) {
                 state.sidebarOpen = false;
                 document.getElementById('sidebar-overlay').classList.add('hidden');
             }
-
-            // Generate Random Transaction ID to prevent server caching/errors
             const tr = Math.floor(Math.random() * 1000000000);
-
-            // Enhanced UPI Link Structure
             const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&mc=0000&mode=00&tn=BuyMeACoffee&tr=${tr}&cu=INR`;
-            
-            // Redirect
             window.location.href = upiLink;
         }
 
@@ -298,7 +330,7 @@
             const container = document.getElementById('app-content');
             let html = '';
 
-            // Loading Screen (Generic)
+            // Loading Screen
             if (state.loading) {
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center min-h-[60vh]">
@@ -350,7 +382,7 @@
                 `;
             } 
             
-            // Equipment View (Grid + Modal)
+            // Equipment View
             else if (state.view === 'equipment') {
                 const hasEquip = state.equipment.length > 0;
                 html = `
@@ -371,7 +403,6 @@
                         ` : `
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 ${state.equipment.map(item => {
-                                    // USE processImageUrl HERE
                                     const imgUrl = processImageUrl(item.image);
                                     return `
                                     <div onclick="viewItem('${item.id}')" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden cursor-pointer hover:shadow-lg hover:border-yellow-400 transition-all transform hover:-translate-y-1 active:scale-95 group">
