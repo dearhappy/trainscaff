@@ -97,16 +97,16 @@
 
     <script>
         // ---------------------------------------------------------
-        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+        // CONFIGURATION SECTION (Updated by AI)
         // ---------------------------------------------------------
+        
+        // 1. Google Apps Script Web App URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4FLd0mdJRn_4penuuIZdpReRSZLclucTt5WfGZGsCslZDvag3fX8w62AvlbBYASGb/exec"; 
-        // ---------------------------------------------------------
 
-        // ---------------------------------------------------------
-        // YOUR UPI DETAILS
-        // ---------------------------------------------------------
-        const UPI_ID = "dearhappy@sbi"; // आपकी UPI ID
-        const PAYEE_NAME = "Gurwinder Singh"; // आपका नाम
+        // 2. UPI Payment Details
+        const UPI_ID = "dearhappy@sbi";      // आपकी नई UPI ID
+        const PAYEE_NAME = "Gurwinder Singh";  // आपका नाम
+        
         // ---------------------------------------------------------
 
         // Fallback data
@@ -265,9 +265,19 @@
 
         // --- Support Logic (Direct Redirect) ---
         function openSupport() {
-            // Generate UPI Link
-            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
-            // Redirect directly to UPI intent
+            // Close sidebar if it's open
+            if (state.sidebarOpen) {
+                state.sidebarOpen = false;
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+            }
+
+            // Generate Random Transaction ID to prevent server caching/errors
+            const tr = Math.floor(Math.random() * 1000000000);
+
+            // Enhanced UPI Link Structure
+            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&mc=0000&mode=00&tn=BuyMeACoffee&tr=${tr}&cu=INR`;
+            
+            // Redirect
             window.location.href = upiLink;
         }
 
@@ -487,5 +497,3 @@
     </script>
 </body>
 </html>
-
-
