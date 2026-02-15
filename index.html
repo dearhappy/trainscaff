@@ -1,499 +1,241 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScaffoldMaster - By Gurwinder Singh</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile App Hub</title>
+    <!-- React & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        .loader { border-top-color: #EAB308; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Modern UI Tweaks */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        /* Special Coffee Button Animation */
+        .ios-scroll { -webkit-overflow-scrolling: touch; }
+        
+        .loader {
+            border-top-color: #3b82f6;
+            animation: spinner 1s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Coffee Button Floating Animation */
         .coffee-float { animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+        @keyframes float { 
+            0%, 100% { transform: translateY(0px); } 
+            50% { transform: translateY(-8px); } 
+        }
+
+        /* Ticker Animation */
+        .ticker-container {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ticker-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 25s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 pb-10">
+<body class="bg-slate-50 text-slate-900 h-screen w-screen overflow-hidden">
+    <div id="root" class="h-full w-full"></div>
 
-    <!-- Header -->
-    <header class="bg-slate-900 text-white p-4 sticky top-0 z-50 flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="navigate('home')">
-            <div class="bg-yellow-500 p-1.5 rounded-lg text-slate-900">
-                <i data-lucide="shield-check"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-lg leading-tight">ScaffoldMaster</h1>
-                <p class="text-[10px] uppercase tracking-widest text-yellow-500 font-semibold text-left">By Gurwinder Singh</p>
-            </div>
-        </div>
-        <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-800 rounded-full">
-            <i data-lucide="menu" id="menu-icon"></i>
-        </button>
-    </header>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-    <!-- Sidebar -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm hidden" onclick="toggleSidebar()">
-        <div class="absolute right-0 top-0 bottom-0 w-64 bg-white p-6 shadow-2xl transition-transform" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="info" class="text-yellow-600"></i> मेनू
-                </h2>
-                <button onclick="toggleSidebar()" class="text-slate-400"><i data-lucide="x"></i></button>
-            </div>
-            <nav class="space-y-4">
-                <button onclick="navigate('home')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 text-left font-medium transition-colors">
-                    <i data-lucide="home"></i> मुख्य पृष्ठ
-                </button>
-                <button onclick="navigate('study')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 text-left font-medium transition-colors">
-                    <i data-lucide="book-open"></i> ट्रेनिंग सामग्री
-                </button>
-                <button onclick="navigate('equipment')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 text-left font-medium transition-colors">
-                    <i data-lucide="hammer"></i> टूल्स और उपकरण
-                </button>
-                <button onclick="startQuiz()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 text-left font-medium transition-colors">
-                    <i data-lucide="trophy"></i> नॉलेज टेस्ट (Quiz)
-                </button>
-            </nav>
-            <div class="absolute bottom-10 left-6 right-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-xs text-yellow-800">
-                <p class="font-bold mb-1">सुरक्षा पहले!</p>
-                हमेशा PPE का उपयोग करें और टैग की जांच करें।
-            </div>
-        </div>
-    </div>
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwX-IYZ0Kwwg6abtD--dfHslPEfNnlLvWkYJZRNOjHg65xndMaINSiq-8gumgheK9SPoA/exec"; 
+        const UPI_ID = "dearhappy@sbi";
 
-    <!-- Container for Views -->
-    <div id="app-content">
-        <!-- Views will be injected here -->
-    </div>
-
-    <!-- FLOATING COFFEE BUTTON (ON EVERY PAGE) -->
-    <div id="coffee-fab" class="fixed bottom-6 right-6 z-50 flex flex-col items-center cursor-pointer group" onclick="openSupport()">
-        <!-- Animated Text Bubble -->
-        <div class="mb-1 coffee-float">
-            <div class="bg-yellow-400 text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap relative border border-yellow-500">
-                BUY ME A COFFEE
-                <!-- Tiny Triangle for speech bubble effect -->
-                <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-yellow-400 rotate-45 border-b border-r border-yellow-500"></div>
-            </div>
-        </div>
-        <!-- Coffee Cup Icon -->
-        <div class="bg-slate-900 text-white p-3.5 rounded-full shadow-2xl border-2 border-yellow-400 hover:scale-110 hover:bg-slate-800 transition-all duration-300">
-            <i data-lucide="coffee" style="width: 24px; height: 24px;"></i>
-        </div>
-    </div>
-
-    <!-- Item Detail Modal Overlay -->
-    <div id="item-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeItem()">
-        <!-- Content injected via JS -->
-    </div>
-
-    <script>
-        // ---------------------------------------------------------
-        // CONFIGURATION SECTION (Updated by AI)
-        // ---------------------------------------------------------
-        
-        // 1. Google Apps Script Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4FLd0mdJRn_4penuuIZdpReRSZLclucTt5WfGZGsCslZDvag3fX8w62AvlbBYASGb/exec"; 
-
-        // 2. UPI Payment Details
-        const UPI_ID = "dearhappy@sbi";      // आपकी नई UPI ID
-        const PAYEE_NAME = "Gurwinder Singh";  // आपका नाम
-        
-        // ---------------------------------------------------------
-
-        // Fallback data
-        const fallbackData = [
-            { id: 1, q: "स्कैफोल्डिंग क्या है?", a: "स्कैफोल्डिंग एक अस्थायी संरचना है जो ऊँचाई पर काम करने के लिए बनाई जाती है।", cat: "Basics" },
-            { id: 2, q: "स्टैंडर्ड क्या है?", a: "यह खड़ा पाइप होता है जो जमीन से ऊपर तक भार उठाता है।", cat: "Components" },
-            { id: 3, q: "गार्डरेल क्यों जरूरी है?", a: "यह ऊपरी सुरक्षा रेल है जो व्यक्ति को गिरने से बचाती है।", cat: "Safety" }
-        ];
-
-        let state = {
-            view: 'home',
-            currentIdx: 0,
-            score: 0,
-            showAnswer: false,
-            questions: fallbackData,
-            equipment: [],
-            filter: 'All',
-            sidebarOpen: false,
-            loading: false,
-            dataLoaded: false,
-            selectedItem: null // For equipment modal
-        };
-
-        // --- Image Processor for Drive Links ---
-        function processImageUrl(url) {
-            if (!url) return null;
-            if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
-                const idMatch = url.match(/\/d\/([^/]+)/);
-                if (idMatch && idMatch[1]) {
-                    return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
-                }
-            }
-            return url;
-        }
-
-        // --- Data Fetching Logic ---
-        async function fetchSheetData() {
-            if (!SCRIPT_URL) return;
-
-            state.loading = true;
-            render(); 
-
-            try {
-                const response = await fetch(SCRIPT_URL);
-                const data = await response.json();
-                
-                if (data.questions && data.questions.length > 0) {
-                    state.questions = data.questions;
-                }
-                if (data.equipment && data.equipment.length > 0) {
-                    state.equipment = data.equipment;
-                }
-                state.dataLoaded = true;
-            } catch (error) {
-                console.error("Data fetch error");
-            } finally {
-                state.loading = false;
-                render();
-            }
-        }
-
-        // --- Navigation Logic ---
-        function toggleSidebar() {
-            state.sidebarOpen = !state.sidebarOpen;
-            const overlay = document.getElementById('sidebar-overlay');
-            if (state.sidebarOpen) {
-                overlay.classList.remove('hidden');
-            } else {
-                overlay.classList.add('hidden');
-            }
-            lucide.createIcons();
-        }
-
-        function navigate(viewName) {
-            state.view = viewName;
-            state.sidebarOpen = false;
-            document.getElementById('sidebar-overlay').classList.add('hidden');
-            render();
-        }
-
-        function setFilter(cat) {
-            state.filter = cat;
-            render();
-        }
-
-        function startQuiz() {
-            const shuffled = [...state.questions].sort(() => 0.5 - Math.random()).slice(0, 10);
-            state.userSelections = shuffled;
-            state.currentIdx = 0;
-            state.score = 0;
-            state.view = 'quiz';
-            state.showAnswer = false;
-            state.sidebarOpen = false;
-            document.getElementById('sidebar-overlay').classList.add('hidden');
-            render();
-        }
-
-        function handleQuizAnswer(isCorrect) {
-            if (isCorrect) state.score++;
-            if (state.currentIdx + 1 < state.userSelections.length) {
-                state.currentIdx++;
-                state.showAnswer = false;
-            } else {
-                state.view = 'results';
-            }
-            render();
-        }
-
-        // --- Equipment Modal Logic ---
-        function viewItem(id) {
-            const item = state.equipment.find(e => e.id == id);
-            if (item) {
-                state.selectedItem = item;
-                renderModal();
-            }
-        }
-
-        function closeItem() {
-            state.selectedItem = null;
-            document.getElementById('item-modal').classList.add('hidden');
-        }
-
-        function renderModal() {
-            const modal = document.getElementById('item-modal');
-            const item = state.selectedItem;
+        const Ticker = ({ supporters }) => {
+            if (!supporters || supporters.length === 0) return null;
             
-            if (!item) return;
-
-            const imgUrl = processImageUrl(item.image);
-
-            modal.innerHTML = `
-                <div class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in duration-200" onclick="event.stopPropagation()">
-                    <button onclick="closeItem()" class="absolute top-3 right-3 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 z-10 backdrop-blur-md">
-                        <i data-lucide="x"></i>
-                    </button>
-                    <div class="h-64 bg-slate-100 w-full relative">
-                        ${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400?text=No+Image'"/>` : `<div class="w-full h-full flex items-center justify-center text-slate-400"><i data-lucide="image" style="width:48px;height:48px;"></i></div>`}
-                    </div>
-                    <div class="p-6">
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">Equipment #${item.id}</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-800 mb-3">${item.name}</h3>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 leading-relaxed text-sm">
-                            ${item.detail || "विवरण उपलब्ध नहीं है।"}
-                        </div>
-                        <button onclick="closeItem()" class="w-full mt-6 bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors">
-                            बंद करें
-                        </button>
+            return (
+                <div className="bg-yellow-400 border-b border-yellow-500 py-1.5 ticker-container">
+                    <div className="ticker-content">
+                        {supporters.map((s, i) => (
+                            <span key={i} className="mx-8 text-xs font-black text-slate-900 uppercase tracking-tighter">
+                                <i className="fa-solid fa-crown mr-2"></i>
+                                Top Supporter: {s.name} — Amount: ₹{s.amount}
+                            </span>
+                        ))}
+                        {/* Repeat for seamless loop */}
+                        {supporters.map((s, i) => (
+                            <span key={`dup-${i}`} className="mx-8 text-xs font-black text-slate-900 uppercase tracking-tighter">
+                                <i className="fa-solid fa-crown mr-2"></i>
+                                Top Supporter: {s.name} — Amount: ₹{s.amount}
+                            </span>
+                        ))}
                     </div>
                 </div>
-            `;
-            modal.classList.remove('hidden');
-            lucide.createIcons();
-        }
+            );
+        };
 
-        // --- Support Logic (Direct Redirect) ---
-        function openSupport() {
-            // Close sidebar if it's open
-            if (state.sidebarOpen) {
-                state.sidebarOpen = false;
-                document.getElementById('sidebar-overlay').classList.add('hidden');
-            }
-
-            // Generate Random Transaction ID to prevent server caching/errors
-            const tr = Math.floor(Math.random() * 1000000000);
-
-            // Enhanced UPI Link Structure
-            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&mc=0000&mode=00&tn=BuyMeACoffee&tr=${tr}&cu=INR`;
-            
-            // Redirect
-            window.location.href = upiLink;
-        }
-
-        // --- Render Logic ---
-        function render() {
-            const container = document.getElementById('app-content');
-            let html = '';
-
-            // Loading Screen (Generic)
-            if (state.loading) {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center min-h-[60vh]">
-                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-200 h-12 w-12 mb-4"></div>
-                        <h2 class="text-xl font-bold text-slate-600">कंटेंट लोड हो रहा है...</h2>
-                        <p class="text-sm text-slate-400">कृपया प्रतीक्षा करें</p>
+        const Header = ({ onSearch, searchTerm }) => (
+            <div className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-5 py-4 sticky top-0 z-20">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                        <div className="bg-blue-600 p-2 rounded-lg">
+                            <i className="fa-solid fa-rocket text-white"></i>
+                        </div>
+                        <h1 className="text-xl font-bold text-slate-800 tracking-tight">Launchpad</h1>
                     </div>
-                `;
-                return;
-            }
+                    <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
+                        <i className="fa-solid fa-user-circle text-xl"></i>
+                    </div>
+                </div>
+                <div className="relative">
+                    <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input 
+                        type="text" 
+                        placeholder="Search your apps..." 
+                        value={searchTerm}
+                        onChange={(e) => onSearch(e.target.value)}
+                        className="w-full bg-slate-100 border-none rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    />
+                </div>
+            </div>
+        );
 
-            // Home View
-            if (state.view === 'home') {
-                const statusMessage = state.dataLoaded 
-                    ? '<span class="text-green-600 text-xs font-bold flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full"><i data-lucide="check-circle" style="width:12px; height:12px;"></i> अपडेटेड</span>' 
-                    : '';
+        const AppCard = ({ name, url }) => {
+            const handleClick = () => {
+                if (url) window.location.href = url;
+            };
 
-                html = `
-                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 fade-in pb-20">
-                        <section class="text-center space-y-2">
-                            <h2 class="text-3xl font-black text-slate-800">नमस्ते, स्कैफोल्डर!</h2>
-                            <p class="text-slate-500">सुरक्षित कार्य ही हमारी प्राथमिकता है।</p>
-                            <div class="flex justify-center mt-2 h-6">${statusMessage}</div>
-                        </section>
-                        <div class="grid grid-cols-1 gap-4">
-                            <button onclick="navigate('study')" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 hover:shadow-md transition-all flex items-center gap-5 text-left relative overflow-hidden">
-                                <div class="absolute right-0 top-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                                <div class="bg-blue-100 text-blue-600 p-4 rounded-xl z-10"><i data-lucide="book-open" style="width:32px;height:32px;"></i></div>
-                                <div class="z-10">
-                                    <h3 class="font-bold text-xl text-slate-800">ट्रेनिंग मोड</h3>
-                                </div>
-                            </button>
-                            <button onclick="navigate('equipment')" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 hover:shadow-md transition-all flex items-center gap-5 text-left relative overflow-hidden">
-                                <div class="absolute right-0 top-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                                <div class="bg-orange-100 text-orange-600 p-4 rounded-xl z-10"><i data-lucide="hammer" style="width:32px;height:32px;"></i></div>
-                                <div class="z-10">
-                                    <h3 class="font-bold text-xl text-slate-800">टूल्स गैलरी</h3>
-                                </div>
-                            </button>
-                            <button onclick="startQuiz()" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 hover:shadow-md transition-all flex items-center gap-5 text-left relative overflow-hidden">
-                                <div class="absolute right-0 top-0 w-24 h-24 bg-yellow-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                                <div class="bg-yellow-100 text-yellow-600 p-4 rounded-xl z-10"><i data-lucide="trophy" style="width:32px;height:32px;"></i></div>
-                                <div class="z-10">
-                                    <h3 class="font-bold text-xl text-slate-800">क्विज चैलेंज</h3>
-                                </div>
-                            </button>
+            return (
+                <button 
+                    onClick={handleClick} 
+                    className="bg-white p-6 rounded-2xl border-2 border-slate-200 shadow-sm active:scale-95 hover:border-blue-500 hover:shadow-md transition-all duration-200 flex items-center justify-center min-h-[100px] w-full group"
+                >
+                    <span className="text-lg font-bold text-slate-800 text-center leading-tight group-hover:text-blue-600 transition-colors">
+                        {name}
+                    </span>
+                </button>
+            );
+        };
+
+        const CoffeeButton = () => {
+            const openSupport = () => {
+                const tr = Math.floor(Math.random() * 1000000000);
+                const upiLink = `upi://pay?pa=${UPI_ID}&pn=Support&mc=0000&mode=00&tn=CoffeeSupport&tr=${tr}&cu=INR`;
+                window.location.href = upiLink;
+            };
+
+            return (
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center cursor-pointer group" onClick={openSupport}>
+                    <div className="mb-2 coffee-float">
+                        <div className="bg-yellow-400 text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap relative border border-yellow-500">
+                            BUY ME A COFFEE
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-yellow-400 rotate-45 border-b border-r border-yellow-500"></div>
                         </div>
-                    </main>
-                `;
-            } 
-            
-            // Equipment View (Grid + Modal)
-            else if (state.view === 'equipment') {
-                const hasEquip = state.equipment.length > 0;
-                html = `
-                    <main class="p-4 max-w-2xl mx-auto space-y-4 fade-in pb-20">
-                        <div class="flex justify-between items-center mb-4">
-                            <div>
-                                <h2 class="text-2xl font-black text-slate-800">उपकरण गैलरी</h2>
-                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">विवरण के लिए क्लिक करें</p>
-                            </div>
-                            <button onclick="navigate('home')" class="bg-slate-100 p-2 rounded-full hover:bg-slate-200"><i data-lucide="x"></i></button>
-                        </div>
+                    </div>
+                    <div className="bg-slate-900 text-white p-4 rounded-full shadow-2xl border-2 border-yellow-400 hover:scale-110 hover:bg-slate-800 transition-all duration-300">
+                        <i className="fa-solid fa-coffee text-xl"></i>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [apps, setApps] = useState([]);
+            const [supporters, setSupporters] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [searchTerm, setSearchTerm] = useState("");
+
+            useEffect(() => {
+                const fetchData = async () => {
+                    try {
+                        const response = await fetch(SCRIPT_URL);
+                        const data = await response.json();
                         
-                        ${!hasEquip ? `
-                            <div class="text-center p-10 bg-white rounded-2xl border border-dashed border-slate-300">
-                                <i data-lucide="image-off" class="mx-auto text-slate-300 mb-3 w-12 h-12"></i>
-                                <p class="text-slate-500 font-medium">कोई डेटा उपलब्ध नहीं है</p>
+                        // We check if data is an array (original format) or an object (new format)
+                        if (Array.isArray(data)) {
+                            // Extract apps from columns A/B and supporters from columns C/D if included in the row data
+                            setApps(data);
+                            // Logic to filter non-empty supporters from the same response rows
+                            const sups = data
+                                .filter(item => item.supporter && item.amount)
+                                .map(item => ({ name: item.supporter, amount: item.amount }));
+                            setSupporters(sups);
+                        } else if (data.apps) {
+                            setApps(data.apps);
+                            setSupporters(data.supporters || []);
+                        }
+                    } catch (err) {
+                        console.error("Fetch error:", err);
+                        setError("Check connection or script deployment.");
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchData();
+            }, []);
+
+            const filteredApps = useMemo(() => {
+                return apps.filter(app => 
+                    app.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }, [apps, searchTerm]);
+
+            return (
+                <div className="h-full flex flex-col max-w-lg mx-auto bg-white border-x border-slate-200 shadow-xl overflow-hidden relative">
+                    <Ticker supporters={supporters} />
+                    <Header searchTerm={searchTerm} onSearch={setSearchTerm} />
+                    
+                    <main className="flex-1 overflow-y-auto ios-scroll p-6">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+                                <div className="loader ease-linear rounded-full border-4 border-slate-100 h-12 w-12 mb-4"></div>
+                                <p className="animate-pulse">Loading Hub...</p>
                             </div>
-                        ` : `
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                ${state.equipment.map(item => {
-                                    // USE processImageUrl HERE
-                                    const imgUrl = processImageUrl(item.image);
-                                    return `
-                                    <div onclick="viewItem('${item.id}')" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden cursor-pointer hover:shadow-lg hover:border-yellow-400 transition-all transform hover:-translate-y-1 active:scale-95 group">
-                                        <div class="aspect-square bg-slate-100 w-full relative overflow-hidden">
-                                            ${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://placehold.co/300x300?text=Image'"/>` : `<div class="w-full h-full flex items-center justify-center text-slate-300"><i data-lucide="image"></i></div>`}
-                                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                                                <span class="text-white text-xs font-bold bg-yellow-500 px-2 py-1 rounded">देखें</span>
-                                            </div>
-                                        </div>
-                                        <div class="p-3 text-center">
-                                            <h3 class="font-bold text-sm text-slate-800 line-clamp-2 leading-tight">${item.name}</h3>
-                                        </div>
-                                    </div>
-                                `}).join('')}
+                        ) : error ? (
+                            <div className="text-center p-10 bg-red-50 rounded-3xl border border-red-100">
+                                <i className="fa-solid fa-triangle-exclamation text-2xl text-red-500 mb-4"></i>
+                                <h3 className="text-red-800 font-bold mb-2">Connection Error</h3>
+                                <p className="text-red-600 text-sm mb-4">{error}</p>
                             </div>
-                        `}
-                        <button onclick="navigate('home')" class="w-full py-4 mt-6 bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-300">
-                            <i data-lucide="chevron-left"></i> वापस
-                        </button>
-                    </main>
-                `;
-            }
-
-            // Study View
-            else if (state.view === 'study') {
-                const categories = ['All', ...new Set(state.questions.map(q => q.cat))];
-                const filtered = state.filter === 'All' ? state.questions : state.questions.filter(q => q.cat === state.filter);
-                
-                html = `
-                    <main class="p-4 max-w-xl mx-auto space-y-6 fade-in pb-20">
-                        <div class="sticky top-[72px] z-30 bg-slate-50/95 backdrop-blur py-2">
-                            <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                                ${categories.map(cat => `
-                                    <button onclick="setFilter('${cat}')" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${state.filter === cat ? 'bg-slate-800 text-white shadow-md transform scale-105' : 'bg-white text-slate-600 border border-slate-200'}">
-                                        ${cat}
-                                    </button>
-                                `).join('')}
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-24">
+                                {filteredApps.map((app, index) => (
+                                    <AppCard 
+                                        key={index} 
+                                        name={app.name} 
+                                        url={app.url} 
+                                    />
+                                ))}
                             </div>
-                        </div>
-                        <div class="space-y-4 pb-8">
-                            ${filtered.map(q => `
-                                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-yellow-500 hover:shadow-md transition-shadow">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-500 uppercase tracking-wide">${q.cat}</span>
-                                        <span class="text-xs text-slate-300 font-mono">#${q.id}</span>
-                                    </div>
-                                    <h3 class="font-bold text-lg mb-3 text-slate-900 leading-snug">${q.q}</h3>
-                                    <div class="bg-blue-50/50 p-4 rounded-lg text-slate-700 border border-blue-100/50">
-                                        <span class="text-blue-600 font-black mr-1 text-sm uppercase">उत्तर:</span> ${q.a}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="flex justify-center mt-4">
-                            <button onclick="navigate('home')" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-300">
-                                <i data-lucide="home" style="width:16px; height:16px;"></i> मुख्य पृष्ठ
-                            </button>
-                        </div>
+                        )}
                     </main>
-                `;
-            } 
-            
-            // Quiz View
-            else if (state.view === 'quiz') {
-                const q = state.userSelections[state.currentIdx];
-                const progress = ((state.currentIdx + 1) / state.userSelections.length) * 100;
 
-                html = `
-                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 text-center fade-in pb-20">
-                        <div class="flex items-center justify-between mb-2">
-                            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">प्रश्न ${state.currentIdx + 1} / ${state.userSelections.length}</h2>
-                            <div class="bg-yellow-100 px-3 py-1 rounded-full text-yellow-800 font-bold text-xs">स्कोर: ${state.score}</div>
-                        </div>
-                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                            <div class="bg-yellow-500 h-full transition-all duration-300" style="width: ${progress}%"></div>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 min-h-[350px] flex flex-col items-center justify-center relative">
-                            <h3 class="text-2xl font-bold text-slate-800 mb-8 leading-tight">${q.q}</h3>
-                            ${!state.showAnswer ? `
-                                <button onclick="state.showAnswer=true; render();" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-bold shadow-lg hover:bg-slate-800 hover:shadow-xl transform hover:-translate-y-1 transition-all">उत्तर दिखाएँ</button>
-                            ` : `
-                                <div class="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 text-slate-800 text-lg font-medium">${q.a}</div>
-                                    <p class="text-sm text-slate-400 font-bold uppercase tracking-wide">क्या आपका जवाब सही था?</p>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <button onclick="handleQuizAnswer(false)" class="p-4 rounded-xl border-2 border-slate-100 text-red-500 font-bold flex flex-col items-center hover:bg-red-50 hover:border-red-200 transition-colors"><i data-lucide="x" class="mb-1"></i>गलत</button>
-                                        <button onclick="handleQuizAnswer(true)" class="p-4 rounded-xl border-2 border-slate-100 text-green-500 font-bold flex flex-col items-center hover:bg-green-50 hover:border-green-200 transition-colors"><i data-lucide="check-circle-2" class="mb-1"></i>सही</button>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-                    </main>
-                `;
-            } 
-            
-            // Results View
-            else if (state.view === 'results') {
-                const percentage = (state.score / 10) * 100;
-                let message = percentage >= 80 ? "शानदार प्रदर्शन!" : percentage >= 50 ? "अच्छा प्रयास!" : "और अभ्यास करें";
-                let color = percentage >= 80 ? "text-green-500" : percentage >= 50 ? "text-yellow-500" : "text-slate-400";
+                    <CoffeeButton />
+                </div>
+            );
+        };
 
-                html = `
-                    <main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 fade-in pb-20">
-                        <div class="relative">
-                            <svg class="w-48 h-48 transform -rotate-90">
-                                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-200" />
-                                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="${percentage >= 80 ? 'text-green-500' : 'text-yellow-500'}" stroke-dasharray="552" stroke-dashoffset="${552 - (552 * percentage / 100)}" stroke-linecap="round" />
-                            </svg>
-                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                <span class="text-5xl font-black text-slate-800">${state.score}</span>
-                                <span class="text-xl text-slate-400 font-bold">/10</span>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h2 class="text-3xl font-black text-slate-800 mb-2">${message}</h2>
-                            <p class="text-slate-500">आपने क्विज पूरा कर लिया है।</p>
-                        </div>
-
-                        <div class="w-full space-y-3">
-                            <button onclick="startQuiz()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-300 flex items-center justify-center gap-2 hover:bg-slate-800"><i data-lucide="refresh-cw"></i> फिर से कोशिश करें</button>
-                            <button onclick="navigate('home')" class="w-full py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-50">मुख्य पृष्ठ</button>
-                        </div>
-                    </main>
-                `;
-            }
-
-            container.innerHTML = html;
-            lucide.createIcons();
-        }
-
-        // Initialize
-        fetchSheetData(); // Fetch real data
-        render(); // Render initial state
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
