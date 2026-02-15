@@ -6,6 +6,8 @@
     <title>ScaffoldMaster - By Gurwinder Singh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Added html2canvas for card downloading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -113,7 +115,7 @@
         <!-- Content injected via JS -->
     </div>
 
-    <!-- PAYMENT MODAL (SIMPLE & ELEGANT) -->
+    <!-- PAYMENT MODAL -->
     <div id="payment-modal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity" onclick="closePaymentModal()">
         <!-- Content injected via JS -->
     </div>
@@ -302,7 +304,7 @@
             lucide.createIcons();
         }
 
-        // --- NEW SIMPLE PAYMENT MODAL WITH AUTO DOWNLOAD ---
+        // --- PAYMENT MODAL WITH FULL CARD DOWNLOAD ---
         function openPaymentModal() {
             if (state.sidebarOpen) {
                 state.sidebarOpen = false;
@@ -313,97 +315,83 @@
             const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`;
 
-            // Trigger Auto Download
-            downloadImage(qrUrl, "payment-qr.png");
-
+            // Create Modal Content
             modal.innerHTML = `
-                <div class="bg-white w-full max-w-[320px] rounded-3xl overflow-hidden shadow-2xl relative content-enter transform scale-100 transition-transform" onclick="event.stopPropagation()">
+                <div class="relative w-full max-w-[320px] content-enter" onclick="event.stopPropagation()">
                     
-                    <!-- Simple Header -->
-                    <div class="bg-yellow-400 p-5 text-center relative">
-                        <h3 class="text-base font-black text-slate-900 uppercase tracking-wider leading-tight">Support Us To Keep Things Free</h3>
-                        
-                        <button onclick="closePaymentModal()" class="absolute top-3 right-3 text-slate-900/50 hover:text-slate-900 transition-colors">
-                            <i data-lucide="x" style="width:20px;height:20px;"></i>
-                        </button>
-                    </div>
+                    <!-- Close button (Outside the printable area) -->
+                    <button onclick="closePaymentModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors z-50">
+                        <i data-lucide="x" style="width:24px;height:24px;"></i>
+                    </button>
 
-                    <div class="p-6 flex flex-col items-center gap-5">
+                    <!-- The Card (We will capture this) -->
+                    <div id="printable-card" class="bg-white rounded-3xl overflow-hidden shadow-2xl relative">
                         
-                        <!-- Main QR Code -->
-                        <div class="p-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
-                            <img src="${qrUrl}" alt="Scan QR" class="w-48 h-48 object-contain mix-blend-multiply">
+                        <!-- Header -->
+                        <div class="bg-yellow-400 p-5 text-center relative">
+                            <h3 class="text-base font-black text-slate-900 uppercase tracking-wider leading-tight">Support Us To Keep Things Free</h3>
                         </div>
 
-                        <!-- Copy ID Section -->
-                        <div class="w-full">
-                            <button id="copyBtn" onclick="copyUpi()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between group active:bg-yellow-50 transition-colors">
-                                <div class="flex flex-col items-start">
-                                    <span class="text-[10px] text-slate-400 font-bold uppercase">UPI ID</span>
-                                    <span class="text-xs font-mono font-bold text-slate-800">${UPI_ID}</span>
-                                </div>
-                                <div class="bg-white p-2 rounded-lg shadow-sm text-slate-400 group-hover:text-yellow-600 transition-colors">
-                                    <i data-lucide="copy" style="width:16px;height:16px;"></i>
-                                </div>
-                            </button>
-                            <p class="text-[10px] text-slate-400 text-center mt-2">QR Code has been downloaded to your gallery.</p>
+                        <div class="p-6 flex flex-col items-center gap-5">
+                            <!-- QR Code -->
+                            <div class="p-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
+                                <img src="${qrUrl}" alt="Scan QR" class="w-48 h-48 object-contain mix-blend-multiply" crossorigin="anonymous">
+                            </div>
+
+                            <!-- UPI ID Display -->
+                            <div class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase mb-1">UPI ID</span>
+                                <span class="text-sm font-mono font-bold text-slate-800">${UPI_ID}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
+                            <p class="text-[10px] text-slate-500 font-bold tracking-wide">
+                                Made With <span class="text-red-500">❤️</span> By Happy Solutions
+                            </p>
                         </div>
                     </div>
-                    
-                    <!-- Heartfelt Footer -->
-                    <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
-                        <p class="text-[10px] text-slate-500 font-bold tracking-wide">
-                            Made With <span class="text-red-500">❤️</span> By Happy Solutions
-                        </p>
-                    </div>
+
+                    <!-- Action Text -->
+                    <p class="text-center text-white/80 text-xs mt-4">Card downloaded! Scan to pay.</p>
                 </div>
             `;
             
             modal.classList.remove('hidden');
             lucide.createIcons();
+
+            // Trigger download after image load
+            const qrImg = modal.querySelector('img');
+            if (qrImg) {
+                if (qrImg.complete) {
+                    captureAndDownload();
+                } else {
+                    qrImg.onload = captureAndDownload;
+                }
+            }
         }
 
-        async function downloadImage(imageSrc, nameOfDownload) {
-            try {
-                const response = await fetch(imageSrc);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = nameOfDownload;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (error) {
-                console.log('Auto-download prevented by browser', error);
-            }
+        function captureAndDownload() {
+            const element = document.getElementById('printable-card');
+            if (!element) return;
+
+            html2canvas(element, {
+                useCORS: true,
+                scale: 2, // Better quality
+                backgroundColor: null 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Happy-Solutions-Support.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            }).catch(err => {
+                console.error("Card download failed:", err);
+            });
         }
 
         function closePaymentModal() {
             document.getElementById('payment-modal').classList.add('hidden');
-        }
-
-        function copyUpi() {
-            navigator.clipboard.writeText(UPI_ID).then(() => {
-                const btn = document.getElementById('copyBtn');
-                const originalContent = btn.innerHTML;
-                
-                btn.classList.add('bg-green-50', 'border-green-200');
-                btn.innerHTML = `
-                    <div class="flex items-center gap-2 w-full justify-center text-green-700 py-1">
-                        <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
-                        <span class="text-sm font-bold">Copied!</span>
-                    </div>
-                `;
-                lucide.createIcons();
-
-                setTimeout(() => {
-                    btn.innerHTML = originalContent;
-                    btn.classList.remove('bg-green-50', 'border-green-200');
-                    lucide.createIcons();
-                }, 2000);
-            }).catch(err => console.error('Failed to copy', err));
         }
 
         // --- Render Logic ---
