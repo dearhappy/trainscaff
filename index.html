@@ -113,7 +113,7 @@
         <!-- Content injected via JS -->
     </div>
 
-    <!-- PAYMENT MODAL (STYLISH & COMPACT) -->
+    <!-- PAYMENT MODAL (SIMPLE & ELEGANT) -->
     <div id="payment-modal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity" onclick="closePaymentModal()">
         <!-- Content injected via JS -->
     </div>
@@ -302,7 +302,7 @@
             lucide.createIcons();
         }
 
-        // --- NEW COMPACT & STYLISH PAYMENT MODAL ---
+        // --- NEW SIMPLE PAYMENT MODAL WITH AUTO DOWNLOAD ---
         function openPaymentModal() {
             if (state.sidebarOpen) {
                 state.sidebarOpen = false;
@@ -311,41 +311,32 @@
 
             const modal = document.getElementById('payment-modal');
             const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
-            // Larger QR size for better scanning
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`;
+
+            // Trigger Auto Download
+            downloadImage(qrUrl, "payment-qr.png");
 
             modal.innerHTML = `
                 <div class="bg-white w-full max-w-[320px] rounded-3xl overflow-hidden shadow-2xl relative content-enter transform scale-100 transition-transform" onclick="event.stopPropagation()">
                     
-                    <!-- Premium Header with Shimmer -->
-                    <div class="bg-slate-900 p-5 text-center relative overflow-hidden">
-                        <div class="absolute inset-0 bg-yellow-500/10 shimmer"></div>
-                        <div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-yellow-500 shadow-lg relative z-10">
-                            <i data-lucide="coffee" class="text-yellow-400"></i>
-                        </div>
-                        <h3 class="text-lg font-black text-white uppercase tracking-wider relative z-10">Support My Work</h3>
-                        <p class="text-xs text-slate-400 mt-1 relative z-10">Your contribution keeps this app free.</p>
+                    <!-- Simple Header -->
+                    <div class="bg-yellow-400 p-5 text-center relative">
+                        <h3 class="text-base font-black text-slate-900 uppercase tracking-wider leading-tight">Support Us To Keep Things Free</h3>
                         
-                        <button onclick="closePaymentModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors z-20">
-                            <i data-lucide="x" style="width:18px;height:18px;"></i>
+                        <button onclick="closePaymentModal()" class="absolute top-3 right-3 text-slate-900/50 hover:text-slate-900 transition-colors">
+                            <i data-lucide="x" style="width:20px;height:20px;"></i>
                         </button>
                     </div>
 
                     <div class="p-6 flex flex-col items-center gap-5">
                         
-                        <!-- Main Attraction: The QR -->
-                        <div class="p-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 group hover:border-yellow-400 transition-colors">
-                            <img src="${qrUrl}" alt="Scan QR" class="w-44 h-44 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300">
+                        <!-- Main QR Code -->
+                        <div class="p-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
+                            <img src="${qrUrl}" alt="Scan QR" class="w-48 h-48 object-contain mix-blend-multiply">
                         </div>
 
+                        <!-- Copy ID Section -->
                         <div class="w-full">
-                            <div class="flex items-center gap-2 mb-2 justify-center">
-                                <span class="h-px w-8 bg-slate-200"></span>
-                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Pay via UPI</span>
-                                <span class="h-px w-8 bg-slate-200"></span>
-                            </div>
-
-                            <!-- One-Tap Copy Button -->
                             <button id="copyBtn" onclick="copyUpi()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between group active:bg-yellow-50 transition-colors">
                                 <div class="flex flex-col items-start">
                                     <span class="text-[10px] text-slate-400 font-bold uppercase">UPI ID</span>
@@ -355,13 +346,14 @@
                                     <i data-lucide="copy" style="width:16px;height:16px;"></i>
                                 </div>
                             </button>
+                            <p class="text-[10px] text-slate-400 text-center mt-2">QR Code has been downloaded to your gallery.</p>
                         </div>
                     </div>
                     
-                    <!-- Sincere Footer -->
+                    <!-- Heartfelt Footer -->
                     <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
-                        <p class="text-[10px] text-slate-400 font-medium flex items-center justify-center gap-1">
-                            Made with <i data-lucide="heart" class="text-red-400 w-3 h-3 fill-current"></i> by ${PAYEE_NAME}
+                        <p class="text-[10px] text-slate-500 font-bold tracking-wide">
+                            Made With <span class="text-red-500">❤️</span> By Happy Solutions
                         </p>
                     </div>
                 </div>
@@ -369,6 +361,23 @@
             
             modal.classList.remove('hidden');
             lucide.createIcons();
+        }
+
+        async function downloadImage(imageSrc, nameOfDownload) {
+            try {
+                const response = await fetch(imageSrc);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nameOfDownload;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.log('Auto-download prevented by browser', error);
+            }
         }
 
         function closePaymentModal() {
@@ -380,7 +389,6 @@
                 const btn = document.getElementById('copyBtn');
                 const originalContent = btn.innerHTML;
                 
-                // Feedback State
                 btn.classList.add('bg-green-50', 'border-green-200');
                 btn.innerHTML = `
                     <div class="flex items-center gap-2 w-full justify-center text-green-700 py-1">
