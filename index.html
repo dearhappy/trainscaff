@@ -82,7 +82,7 @@
     </div>
 
     <!-- FLOATING COFFEE BUTTON (ON EVERY PAGE) -->
-    <div id="coffee-fab" class="fixed bottom-6 right-6 z-50 flex flex-col items-center cursor-pointer group" onclick="openSupport()">
+    <div id="coffee-fab" class="fixed bottom-6 right-6 z-50 flex flex-col items-center cursor-pointer group" onclick="openPaymentModal()">
         <!-- Animated Text Bubble -->
         <div class="mb-1 coffee-float">
             <div class="bg-yellow-400 text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap relative border border-yellow-500">
@@ -99,6 +99,11 @@
 
     <!-- Item Detail Modal Overlay -->
     <div id="item-modal" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center p-2 backdrop-blur-sm transition-opacity" onclick="closeItem()">
+        <!-- Content injected via JS -->
+    </div>
+
+    <!-- PAYMENT MODAL (THE FAIL-SAFE SOLUTION) -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/90 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity" onclick="closePaymentModal()">
         <!-- Content injected via JS -->
     </div>
 
@@ -314,18 +319,73 @@
             lucide.createIcons();
         }
 
-        // --- Support Logic (CRITICAL FIX FOR P2P PAYMENTS) ---
-        function openSupport() {
+        // --- PAYMENT MODAL LOGIC (FAIL-SAFE) ---
+        function openPaymentModal() {
             if (state.sidebarOpen) {
                 state.sidebarOpen = false;
                 document.getElementById('sidebar-overlay').classList.add('hidden');
             }
 
-            // CLEAN P2P LINK: NO merchant codes, NO tr, NO mode
-            // This is the most compatible format for personal UPI IDs
-            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&tn=Coffee&cu=INR`;
+            const modal = document.getElementById('payment-modal');
+            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiLink)}`;
+
+            modal.innerHTML = `
+                <div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl relative content-enter" onclick="event.stopPropagation()">
+                    <div class="bg-yellow-400 p-4 text-center">
+                        <h3 class="text-xl font-black text-slate-900 uppercase">Support the Developer</h3>
+                    </div>
+                    
+                    <button onclick="closePaymentModal()" class="absolute top-3 right-3 bg-black/20 text-slate-900 p-1.5 rounded-full hover:bg-black/30 transition-colors">
+                        <i data-lucide="x" style="width:18px;height:18px;"></i>
+                    </button>
+
+                    <div class="p-6 text-center space-y-6">
+                        
+                        <!-- OPTION 1: QR CODE (Most Reliable) -->
+                        <div class="space-y-2">
+                            <div class="bg-white p-3 rounded-xl border-2 border-slate-200 inline-block shadow-sm">
+                                <img src="${qrUrl}" alt="Scan to Pay" class="w-40 h-40 object-contain mx-auto mix-blend-multiply">
+                            </div>
+                            <p class="text-xs text-slate-500 font-medium">Any UPI App • No Fees • 100% Safe</p>
+                        </div>
+
+                        <!-- OPTION 2: COPY ID (Fail-safe) -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
+                            <div class="text-left overflow-hidden">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">UPI ID</p>
+                                <p class="text-sm font-mono font-bold text-slate-800 truncate">${UPI_ID}</p>
+                            </div>
+                            <button onclick="copyUpi()" class="bg-white p-2 rounded-lg border border-slate-200 text-blue-600 hover:text-blue-700 hover:border-blue-300 transition-all active:scale-90">
+                                <i data-lucide="copy" style="width:18px;height:18px;"></i>
+                            </button>
+                        </div>
+
+                        <!-- OPTION 3: DIRECT APP BUTTON -->
+                        <a href="${upiLink}" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold shadow-lg hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <span>Open Payment App</span>
+                            <i data-lucide="external-link" style="width:16px;height:16px;"></i>
+                        </a>
+                        
+                        <p class="text-[10px] text-slate-400">If the button doesn't work, please scan the QR code or copy the ID.</p>
+                    </div>
+                </div>
+            `;
             
-            window.location.href = upiLink;
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        function copyUpi() {
+            navigator.clipboard.writeText(UPI_ID).then(() => {
+                alert("UPI ID Copied: " + UPI_ID);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
         }
 
         // --- Render Logic ---
