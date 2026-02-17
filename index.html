@@ -6,7 +6,7 @@
     <title>ScaffoldMaster - By Gurwinder Singh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Added html2canvas for card downloading -->
+    <!-- Added html2canvas for card and certificate downloading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
@@ -18,26 +18,26 @@
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Special Coffee Button Animation */
         .coffee-float { animation: float 3s ease-in-out infinite; }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
 
-        /* Modal Content Transition */
         .content-enter { animation: contentEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes contentEnter {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
         
-        /* Shimmer effect for premium feel */
         .shimmer {
             background: linear-gradient(to right, #fefce8 0%, #fef08a 50%, #fefce8 100%);
             background-size: 200% 100%;
             animation: shimmer 2s infinite;
         }
-        @keyframes shimmer {
-            0% { background-position: 100% 0; }
-            100% { background-position: -100% 0; }
+        @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+        /* Certificate Styles */
+        .certificate-bg {
+            background-image: radial-gradient(circle at center, white 0%, #f8fafc 100%);
+            border: 8px double #1e293b;
         }
     </style>
 </head>
@@ -81,6 +81,10 @@
                 <button onclick="startQuiz()" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 text-left font-medium transition-colors">
                     <i data-lucide="trophy"></i> नॉलेज टेस्ट (Quiz)
                 </button>
+                <!-- EXAM MENU ITEM -->
+                <button onclick="navigate('exam-intro')" class="w-full flex items-center gap-3 p-3 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-left font-medium transition-colors">
+                    <i data-lucide="graduation-cap"></i> फाइनल परीक्षा (Exam)
+                </button>
             </nav>
             <div class="absolute bottom-10 left-6 right-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-xs text-yellow-800">
                 <p class="font-bold mb-1">सुरक्षा पहले!</p>
@@ -90,80 +94,71 @@
     </div>
 
     <!-- Container for Views -->
-    <div id="app-content">
-        <!-- Views will be injected here -->
-    </div>
+    <div id="app-content"></div>
 
-    <!-- FLOATING COFFEE BUTTON (ON EVERY PAGE) -->
+    <!-- Floating Coffee Button -->
     <div id="coffee-fab" class="fixed bottom-6 right-6 z-50 flex flex-col items-center cursor-pointer group" onclick="openPaymentModal()">
-        <!-- Animated Text Bubble -->
         <div class="mb-1 coffee-float">
             <div class="bg-yellow-400 text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap relative border border-yellow-500">
                 BUY ME A COFFEE
-                <!-- Tiny Triangle for speech bubble effect -->
                 <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-yellow-400 rotate-45 border-b border-r border-yellow-500"></div>
             </div>
         </div>
-        <!-- Coffee Cup Icon -->
         <div class="bg-slate-900 text-white p-3.5 rounded-full shadow-2xl border-2 border-yellow-400 hover:scale-110 hover:bg-slate-800 transition-all duration-300">
             <i data-lucide="coffee" style="width: 24px; height: 24px;"></i>
         </div>
     </div>
 
-    <!-- Item Detail Modal Overlay -->
-    <div id="item-modal" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center p-2 backdrop-blur-sm transition-opacity" onclick="closeItem()">
-        <!-- Content injected via JS -->
-    </div>
+    <!-- Item Modal -->
+    <div id="item-modal" class="fixed inset-0 bg-black/90 z-[60] hidden flex items-center justify-center p-2 backdrop-blur-sm transition-opacity" onclick="closeItem()"></div>
 
-    <!-- PAYMENT MODAL -->
-    <div id="payment-modal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity" onclick="closePaymentModal()">
-        <!-- Content injected via JS -->
-    </div>
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity" onclick="closePaymentModal()"></div>
 
     <script>
-        // ---------------------------------------------------------
-        // CONFIGURATION SECTION
-        // ---------------------------------------------------------
+        // --- CONFIGURATION ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4FLd0mdJRn_4penuuIZdpReRSZLclucTt5WfGZGsCslZDvag3fX8w62AvlbBYASGb/exec"; 
         const UPI_ID = "dearhappy@sbi";
         const PAYEE_NAME = "Gurwinder Singh";
-        // ---------------------------------------------------------
 
-        // Fallback data
-        const fallbackData = [
-            { id: 1, q: "स्कैफोल्डिंग क्या है?", a: "स्कैफोल्डिंग एक अस्थायी संरचना है जो ऊँचाई पर काम करने के लिए बनाई जाती है।", cat: "Basics" },
-            { id: 2, q: "स्टैंडर्ड क्या है?", a: "यह खड़ा पाइप होता है जो जमीन से ऊपर तक भार उठाता है।", cat: "Components" },
-            { id: 3, q: "गार्डरेल क्यों जरूरी है?", a: "यह ऊपरी सुरक्षा रेल है जो व्यक्ति को गिरने से बचाती है।", cat: "Safety" }
-        ];
-
+        // --- GLOBAL STATE ---
         let state = {
             view: 'home',
+            questions: [],
+            equipment: [],
+            loading: false,
+            dataLoaded: false,
+            
+            // Quiz State
             currentIdx: 0,
             score: 0,
             showAnswer: false,
-            questions: fallbackData,
-            equipment: [],
+            userSelections: [],
             filter: 'All',
+            
+            // Exam State
+            examUser: { name: '', mobile: '' },
+            examQuestions: [],
+            examCurrentIdx: 0,
+            examScore: 0,
+            examSubmitted: false,
+            
+            // UI State
             sidebarOpen: false,
-            loading: false,
-            dataLoaded: false,
             selectedItem: null,
-            selectedItemIndex: -1 // Track index for Next/Prev
+            selectedItemIndex: -1
         };
 
-        // --- Image Processor for Drive Links ---
+        // --- CORE FUNCTIONS ---
         function processImageUrl(url) {
             if (!url) return null;
             if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
                 const idMatch = url.match(/\/d\/([^/]+)/);
-                if (idMatch && idMatch[1]) {
-                    return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
-                }
+                if (idMatch && idMatch[1]) return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
             }
             return url;
         }
 
-        // --- Data Fetching Logic ---
         async function fetchSheetData() {
             if (!SCRIPT_URL) return;
             state.loading = true;
@@ -171,26 +166,105 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                if (data.questions && data.questions.length > 0) state.questions = data.questions;
-                if (data.equipment && data.equipment.length > 0) state.equipment = data.equipment;
+                if (data.questions?.length > 0) state.questions = data.questions;
+                if (data.equipment?.length > 0) state.equipment = data.equipment;
                 state.dataLoaded = true;
-            } catch (error) {
-                console.error("Data fetch error");
-            } finally {
-                state.loading = false;
+            } catch (error) { console.error("Data error"); } 
+            finally { state.loading = false; render(); }
+        }
+
+        // --- EXAM LOGIC ---
+        function startExamRegistration() {
+            navigate('exam-register');
+        }
+
+        function generateExamQuestions() {
+            // 20 Text Questions
+            const textPool = [...state.questions].sort(() => 0.5 - Math.random());
+            const textQs = textPool.slice(0, 20).map(q => {
+                const others = state.questions.filter(x => x.id !== q.id).map(x => x.a);
+                const wrong = others.sort(() => 0.5 - Math.random()).slice(0, 2);
+                return {
+                    type: 'text',
+                    question: q.q,
+                    correct: q.a,
+                    options: [q.a, ...wrong].sort(() => 0.5 - Math.random())
+                };
+            });
+
+            // 5 Image Questions (if available)
+            let imgQs = [];
+            if (state.equipment.length >= 5) {
+                const imgPool = [...state.equipment].sort(() => 0.5 - Math.random());
+                imgQs = imgPool.slice(0, 5).map(eq => {
+                    const others = state.equipment.filter(x => x.id !== eq.id).map(x => x.name);
+                    const wrong = others.sort(() => 0.5 - Math.random()).slice(0, 2);
+                    return {
+                        type: 'image',
+                        image: eq.image,
+                        question: "इस उपकरण को पहचानें (Identify this equipment):",
+                        correct: eq.name,
+                        options: [eq.name, ...wrong].sort(() => 0.5 - Math.random())
+                    };
+                });
+            }
+
+            state.examQuestions = [...textQs, ...imgQs].sort(() => 0.5 - Math.random());
+            state.examCurrentIdx = 0;
+            state.examScore = 0;
+            navigate('exam-active');
+        }
+
+        function submitExamAnswer(selectedOption) {
+            const currentQ = state.examQuestions[state.examCurrentIdx];
+            if (selectedOption === currentQ.correct) {
+                state.examScore++;
+            }
+
+            if (state.examCurrentIdx + 1 < state.examQuestions.length) {
+                state.examCurrentIdx++;
                 render();
+            } else {
+                finishExam();
             }
         }
 
-        // --- Navigation Logic ---
-        function toggleSidebar() {
-            state.sidebarOpen = !state.sidebarOpen;
-            const overlay = document.getElementById('sidebar-overlay');
-            if (state.sidebarOpen) overlay.classList.remove('hidden');
-            else overlay.classList.add('hidden');
-            lucide.createIcons();
+        async function finishExam() {
+            state.loading = true;
+            render();
+
+            const total = state.examQuestions.length;
+            const percentage = Math.round((state.examScore / total) * 100);
+            const status = percentage >= 60 ? "PASS" : "FAIL";
+
+            // Save to Sheet
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: state.examUser.name,
+                        mobile: state.examUser.mobile,
+                        percentage: percentage,
+                        status: status
+                    })
+                });
+            } catch (e) { console.error("Save failed", e); }
+
+            state.loading = false;
+            navigate('exam-result');
         }
 
+        function downloadCertificate() {
+            const cert = document.getElementById('certificate-node');
+            html2canvas(cert, { scale: 2 }).then(canvas => {
+                const a = document.createElement('a');
+                a.download = `Certificate-${state.examUser.name}.png`;
+                a.href = canvas.toDataURL("image/png");
+                a.click();
+            });
+        }
+
+        // --- NAVIGATION & UI ---
         function navigate(viewName) {
             state.view = viewName;
             state.sidebarOpen = false;
@@ -198,9 +272,247 @@
             render();
         }
 
-        function setFilter(cat) {
-            state.filter = cat;
-            render();
+        function toggleSidebar() {
+            state.sidebarOpen = !state.sidebarOpen;
+            const overlay = document.getElementById('sidebar-overlay');
+            state.sidebarOpen ? overlay.classList.remove('hidden') : overlay.classList.add('hidden');
+            lucide.createIcons();
+        }
+
+        // --- RENDER ---
+        function render() {
+            const container = document.getElementById('app-content');
+            
+            if (state.loading) {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center min-h-[60vh]"><div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-200 h-12 w-12 mb-4"></div><p class="text-slate-500">Processing...</p></div>`;
+                return;
+            }
+
+            let html = '';
+
+            // HOME
+            if (state.view === 'home') {
+                html = `
+                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 fade-in pb-20">
+                        <section class="text-center space-y-2">
+                            <h2 class="text-3xl font-black text-slate-800">नमस्ते, स्कैफोल्डर!</h2>
+                            <p class="text-slate-500">सुरक्षित कार्य ही हमारी प्राथमिकता है।</p>
+                            ${state.dataLoaded ? '<span class="text-green-600 text-xs font-bold flex justify-center items-center gap-1"><i data-lucide="check-circle" style="width:12px"></i> ऑनलाइन</span>' : ''}
+                        </section>
+                        <div class="grid grid-cols-1 gap-4">
+                            <button onclick="navigate('study')" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 transition-all flex items-center gap-5 text-left">
+                                <div class="bg-blue-100 text-blue-600 p-4 rounded-xl"><i data-lucide="book-open" style="width:32px;height:32px;"></i></div>
+                                <div><h3 class="font-bold text-xl text-slate-800">ट्रेनिंग मोड</h3><p class="text-xs text-slate-400">Study Materials</p></div>
+                            </button>
+                            <button onclick="navigate('equipment')" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 transition-all flex items-center gap-5 text-left">
+                                <div class="bg-orange-100 text-orange-600 p-4 rounded-xl"><i data-lucide="hammer" style="width:32px;height:32px;"></i></div>
+                                <div><h3 class="font-bold text-xl text-slate-800">टूल्स गैलरी</h3><p class="text-xs text-slate-400">Equipment Guide</p></div>
+                            </button>
+                            <button onclick="startQuiz()" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 transition-all flex items-center gap-5 text-left">
+                                <div class="bg-yellow-100 text-yellow-600 p-4 rounded-xl"><i data-lucide="trophy" style="width:32px;height:32px;"></i></div>
+                                <div><h3 class="font-bold text-xl text-slate-800">क्विज चैलेंज</h3><p class="text-xs text-slate-400">Practice Test</p></div>
+                            </button>
+                            <!-- NEW EXAM CARD -->
+                            <button onclick="startExamRegistration()" class="group bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 hover:bg-slate-900 transition-all flex items-center gap-5 text-left relative overflow-hidden">
+                                <div class="absolute right-0 top-0 w-24 h-24 bg-white/5 rounded-bl-full -mr-4 -mt-4"></div>
+                                <div class="bg-indigo-500 text-white p-4 rounded-xl relative z-10"><i data-lucide="graduation-cap" style="width:32px;height:32px;"></i></div>
+                                <div class="relative z-10 text-white">
+                                    <h3 class="font-bold text-xl">फाइनल परीक्षा</h3>
+                                    <p class="text-xs text-slate-300">Exam & Certificate</p>
+                                </div>
+                            </button>
+                        </div>
+                    </main>`;
+            }
+
+            // EXAM REGISTER
+            else if (state.view === 'exam-register') {
+                html = `
+                    <main class="p-6 max-w-md mx-auto min-h-[80vh] flex flex-col justify-center fade-in">
+                        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+                            <div class="text-center mb-8">
+                                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600">
+                                    <i data-lucide="user-plus" style="width:32px;height:32px;"></i>
+                                </div>
+                                <h2 class="text-2xl font-black text-slate-800">पंजीकरण (Registration)</h2>
+                                <p class="text-sm text-slate-500">परीक्षा शुरू करने के लिए अपना विवरण दें</p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">आपका नाम (Full Name)</label>
+                                    <input type="text" id="regName" class="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:outline-none font-bold text-slate-800" placeholder="Ex: Rahul Kumar">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">मोबाइल नंबर (Mobile)</label>
+                                    <input type="tel" id="regMobile" class="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:outline-none font-bold text-slate-800" placeholder="Ex: 9876543210">
+                                </div>
+                                <button onclick="handleRegistration()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition-colors mt-4 flex items-center justify-center gap-2">
+                                    <span>परीक्षा शुरू करें</span>
+                                    <i data-lucide="arrow-right" style="width:18px"></i>
+                                </button>
+                                <button onclick="navigate('home')" class="w-full text-slate-400 text-sm font-medium py-2">रद्द करें (Cancel)</button>
+                            </div>
+                        </div>
+                    </main>
+                `;
+            }
+
+            // EXAM ACTIVE
+            else if (state.view === 'exam-active') {
+                const q = state.examQuestions[state.examCurrentIdx];
+                const progress = ((state.examCurrentIdx + 1) / state.examQuestions.length) * 100;
+                
+                html = `
+                    <main class="p-4 max-w-md mx-auto pt-6 fade-in pb-20">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Question ${state.examCurrentIdx + 1}/${state.examQuestions.length}</span>
+                            <span class="text-xs font-bold text-slate-400">Final Exam</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-6">
+                            <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${progress}%"></div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 min-h-[400px] flex flex-col">
+                            ${q.type === 'image' 
+                                ? `<div class="h-48 bg-slate-50 rounded-xl mb-4 flex items-center justify-center border border-slate-100 overflow-hidden"><img src="${processImageUrl(q.image)}" class="h-full object-contain" onerror="this.style.display='none'"></div>` 
+                                : ''
+                            }
+                            
+                            <h3 class="text-lg font-bold text-slate-800 mb-6 leading-relaxed">${q.question}</h3>
+                            
+                            <div class="space-y-3 mt-auto">
+                                ${q.options.map(opt => `
+                                    <button onclick="submitExamAnswer('${opt.replace(/'/g, "\\'")}')" class="w-full text-left p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-medium text-slate-700 text-sm">
+                                        ${opt}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </main>
+                `;
+            }
+
+            // EXAM RESULT
+            else if (state.view === 'exam-result') {
+                const total = state.examQuestions.length;
+                const percentage = Math.round((state.examScore / total) * 100);
+                const passed = percentage >= 60;
+
+                if (passed) {
+                    html = `
+                        <main class="p-4 max-w-md mx-auto pt-6 fade-in pb-20 text-center">
+                            <div class="mb-6">
+                                <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-50">
+                                    <i data-lucide="check" style="width:40px;height:40px;"></i>
+                                </div>
+                                <h2 class="text-3xl font-black text-slate-800">बधाई हो! (Passed)</h2>
+                                <p class="text-slate-500">आपने परीक्षा उत्तीर्ण कर ली है।</p>
+                            </div>
+
+                            <!-- Certificate Preview (Hidden off-screen but rendered for capture) -->
+                            <div class="overflow-x-auto flex justify-center mb-6">
+                                <div id="certificate-node" class="certificate-bg bg-white p-8 w-[600px] text-center relative shadow-2xl flex-shrink-0">
+                                    <div class="absolute top-4 left-4 opacity-10"><i data-lucide="shield-check" style="width:60px;height:60px;"></i></div>
+                                    <div class="absolute bottom-4 right-4 opacity-10"><i data-lucide="award" style="width:60px;height:60px;"></i></div>
+                                    
+                                    <h1 class="text-3xl font-serif font-bold text-slate-900 mb-2 uppercase tracking-widest border-b-2 border-slate-900 inline-block pb-1">Certificate of Completion</h1>
+                                    <p class="text-slate-500 italic mt-2">This is to certify that</p>
+                                    
+                                    <h2 class="text-4xl font-black text-indigo-700 my-4 uppercase font-serif">${state.examUser.name}</h2>
+                                    
+                                    <p class="text-slate-600 mb-6">Mobile: ${state.examUser.mobile}</p>
+                                    <p class="text-slate-700 leading-relaxed max-w-md mx-auto">Has successfully completed the <strong>Scaffolding Safety Assessment</strong> with a score of:</p>
+                                    
+                                    <div class="text-5xl font-black text-slate-900 my-4">${percentage}%</div>
+                                    
+                                    <div class="flex justify-between items-end mt-12 border-t border-slate-300 pt-4">
+                                        <div class="text-xs text-slate-400">Date: ${new Date().toLocaleDateString()}</div>
+                                        <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Exam Authority</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <button onclick="downloadCertificate()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
+                                    <i data-lucide="download"></i> सर्टिफिकेट डाउनलोड करें
+                                </button>
+                                <button onclick="navigate('home')" class="w-full border-2 border-slate-200 py-3 rounded-xl font-bold text-slate-600">मुख्य पृष्ठ</button>
+                            </div>
+                        </main>
+                    `;
+                } else {
+                    html = `
+                        <main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-6 fade-in pb-20">
+                            <div class="w-24 h-24 bg-red-100 text-red-500 rounded-full flex items-center justify-center border-4 border-red-50">
+                                <i data-lucide="alert-triangle" style="width:48px;height:48px;"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-3xl font-black text-slate-800">प्रशिक्षण आवश्यक है</h2>
+                                <p class="text-red-500 font-bold text-xl mt-1">Score: ${percentage}%</p>
+                                <p class="text-slate-500 mt-2 text-sm">पास होने के लिए 60% अंक जरूरी हैं।<br>कृपया ट्रेनिंग मोड में दोबारा पढ़ाई करें।</p>
+                            </div>
+                            <div class="w-full space-y-3">
+                                <button onclick="navigate('study')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">ट्रेनिंग मोड में जाएँ</button>
+                                <button onclick="navigate('home')" class="w-full border-2 border-slate-200 py-3 rounded-xl font-bold text-slate-600">मुख्य पृष्ठ</button>
+                            </div>
+                        </main>
+                    `;
+                }
+            }
+
+            // Standard Views (Study, Equipment, Quiz) from previous code...
+            else if (state.view === 'study') {
+               // ... existing Study View logic ...
+               const categories = ['All', ...new Set(state.questions.map(q => q.cat))];
+                const filtered = state.filter === 'All' ? state.questions : state.questions.filter(q => q.cat === state.filter);
+                html = `
+                    <main class="p-4 max-w-xl mx-auto space-y-6 fade-in pb-20">
+                        <div class="sticky top-[72px] z-30 bg-slate-50/95 backdrop-blur py-2">
+                            <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                ${categories.map(cat => `<button onclick="setFilter('${cat}')" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${state.filter === cat ? 'bg-slate-800 text-white shadow-md transform scale-105' : 'bg-white text-slate-600 border border-slate-200'}">${cat}</button>`).join('')}
+                            </div>
+                        </div>
+                        <div class="space-y-4 pb-8">
+                            ${filtered.map(q => `<div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-yellow-500 hover:shadow-md transition-shadow"><div class="flex justify-between items-start mb-3"><span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-500 uppercase tracking-wide">${q.cat}</span><span class="text-xs text-slate-300 font-mono">#${q.id}</span></div><h3 class="font-bold text-lg mb-3 text-slate-900 leading-snug">${q.q}</h3><div class="bg-blue-50/50 p-4 rounded-lg text-slate-700 border border-blue-100/50"><span class="text-blue-600 font-black mr-1 text-sm uppercase">उत्तर:</span> ${q.a}</div></div>`).join('')}
+                        </div>
+                        <div class="flex justify-center mt-4"><button onclick="navigate('home')" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-300"><i data-lucide="home" style="width:16px; height:16px;"></i> मुख्य पृष्ठ</button></div>
+                    </main>`;
+            }
+            else if (state.view === 'equipment') {
+                // ... existing Equipment View logic ...
+                const hasEquip = state.equipment.length > 0;
+                html = `<main class="p-4 max-w-2xl mx-auto space-y-4 fade-in pb-20"><div class="flex justify-between items-center mb-4"><div><h2 class="text-2xl font-black text-slate-800">उपकरण गैलरी</h2><p class="text-xs text-slate-500 font-bold uppercase tracking-widest">विवरण के लिए क्लिक करें</p></div><button onclick="navigate('home')" class="bg-slate-100 p-2 rounded-full hover:bg-slate-200"><i data-lucide="x"></i></button></div>${!hasEquip ? `<div class="text-center p-10 bg-white rounded-2xl border border-dashed border-slate-300"><i data-lucide="image-off" class="mx-auto text-slate-300 mb-3 w-12 h-12"></i><p class="text-slate-500 font-medium">कोई डेटा उपलब्ध नहीं है</p></div>` : `<div class="grid grid-cols-2 md:grid-cols-3 gap-3">${state.equipment.map(item => { const imgUrl = processImageUrl(item.image); return `<div onclick="viewItem('${item.id}')" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden cursor-pointer hover:shadow-lg hover:border-yellow-400 transition-all transform hover:-translate-y-1 active:scale-95 group"><div class="aspect-square bg-slate-100 w-full relative overflow-hidden">${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-contain p-2" onerror="this.src='https://placehold.co/300x300?text=Image'"/>` : `<div class="w-full h-full flex items-center justify-center text-slate-300"><i data-lucide="image"></i></div>`}<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4"><span class="text-white text-xs font-bold bg-yellow-500 px-2 py-1 rounded">देखें</span></div></div><div class="p-3 text-center"><h3 class="font-bold text-sm text-slate-800 line-clamp-2 leading-tight">${item.name}</h3></div></div>`}).join('')}</div>`}<button onclick="navigate('home')" class="w-full py-4 mt-6 bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-300"><i data-lucide="chevron-left"></i> वापस</button></main>`;
+            }
+            else if (state.view === 'quiz') {
+                // ... existing Quiz View logic ...
+                startQuiz = () => { const shuffled = [...state.questions].sort(() => 0.5 - Math.random()).slice(0, 10); state.userSelections = shuffled; state.currentIdx = 0; state.score = 0; state.view = 'quiz'; state.showAnswer = false; render(); };
+                const q = state.userSelections[state.currentIdx]; const progress = ((state.currentIdx + 1) / state.userSelections.length) * 100;
+                html = `<main class="p-4 max-w-md mx-auto space-y-6 pt-6 text-center fade-in pb-20"><div class="flex items-center justify-between mb-2"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">प्रश्न ${state.currentIdx + 1} / ${state.userSelections.length}</h2><div class="bg-yellow-100 px-3 py-1 rounded-full text-yellow-800 font-bold text-xs">स्कोर: ${state.score}</div></div><div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden"><div class="bg-yellow-500 h-full transition-all duration-300" style="width: ${progress}%"></div></div><div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 min-h-[350px] flex flex-col items-center justify-center relative"><h3 class="text-2xl font-bold text-slate-800 mb-8 leading-tight">${q.q}</h3>${!state.showAnswer ? `<button onclick="state.showAnswer=true; render();" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-bold shadow-lg hover:bg-slate-800 hover:shadow-xl transform hover:-translate-y-1 transition-all">उत्तर दिखाएँ</button>` : `<div class="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300"><div class="bg-blue-50 p-6 rounded-xl border border-blue-100 text-slate-800 text-lg font-medium">${q.a}</div><p class="text-sm text-slate-400 font-bold uppercase tracking-wide">क्या आपका जवाब सही था?</p><div class="grid grid-cols-2 gap-4"><button onclick="handleQuizAnswer(false)" class="p-4 rounded-xl border-2 border-slate-100 text-red-500 font-bold flex flex-col items-center hover:bg-red-50 hover:border-red-200 transition-colors"><i data-lucide="x" class="mb-1"></i>गलत</button><button onclick="handleQuizAnswer(true)" class="p-4 rounded-xl border-2 border-slate-100 text-green-500 font-bold flex flex-col items-center hover:bg-green-50 hover:border-green-200 transition-colors"><i data-lucide="check-circle-2" class="mb-1"></i>सही</button></div></div>`}</div></main>`;
+            }
+            else if (state.view === 'results') {
+                const percentage = (state.score / 10) * 100;
+                let message = percentage >= 80 ? "शानदार प्रदर्शन!" : percentage >= 50 ? "अच्छा प्रयास!" : "और अभ्यास करें";
+                let color = percentage >= 80 ? "text-green-500" : percentage >= 50 ? "text-yellow-500" : "text-slate-400";
+                html = `<main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 fade-in pb-20"><div class="relative"><svg class="w-48 h-48 transform -rotate-90"><circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-200" /><circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="${percentage >= 80 ? 'text-green-500' : 'text-yellow-500'}" stroke-dasharray="552" stroke-dashoffset="${552 - (552 * percentage / 100)}" stroke-linecap="round" /></svg><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"><span class="text-5xl font-black text-slate-800">${state.score}</span><span class="text-xl text-slate-400 font-bold">/10</span></div></div><div><h2 class="text-3xl font-black text-slate-800 mb-2">${message}</h2><p class="text-slate-500">आपने क्विज पूरा कर लिया है।</p></div><div class="w-full space-y-3"><button onclick="startQuiz()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-300 flex items-center justify-center gap-2 hover:bg-slate-800"><i data-lucide="refresh-cw"></i> फिर से कोशिश करें</button><button onclick="navigate('home')" class="w-full py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-50">मुख्य पृष्ठ</button></div></main>`;
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- HANDLERS ---
+        function handleRegistration() {
+            const name = document.getElementById('regName').value;
+            const mobile = document.getElementById('regMobile').value;
+            
+            if (!name || !mobile) {
+                alert("कृपया अपना नाम और मोबाइल नंबर दर्ज करें।");
+                return;
+            }
+            
+            state.examUser = { name, mobile };
+            generateExamQuestions();
         }
 
         function startQuiz() {
@@ -210,402 +522,41 @@
             state.score = 0;
             state.view = 'quiz';
             state.showAnswer = false;
-            state.sidebarOpen = false;
-            document.getElementById('sidebar-overlay').classList.add('hidden');
-            render();
+            navigate('quiz');
         }
 
+        function setFilter(cat) { state.filter = cat; render(); }
         function handleQuizAnswer(isCorrect) {
             if (isCorrect) state.score++;
-            if (state.currentIdx + 1 < state.userSelections.length) {
-                state.currentIdx++;
-                state.showAnswer = false;
-            } else {
-                state.view = 'results';
-            }
+            if (state.currentIdx + 1 < state.userSelections.length) { state.currentIdx++; state.showAnswer = false; } else { state.view = 'results'; }
             render();
         }
 
-        // --- Equipment Modal Logic (Updated for Nav) ---
-        function viewItem(id) {
-            const index = state.equipment.findIndex(e => e.id == id);
-            if (index !== -1) {
-                state.selectedItemIndex = index;
-                state.selectedItem = state.equipment[index];
-                renderModal();
-            }
-        }
-
-        function navItem(direction) {
-            if(event) event.stopPropagation();
-            let newIndex = state.selectedItemIndex + direction;
-            if (newIndex < 0) newIndex = state.equipment.length - 1;
-            if (newIndex >= state.equipment.length) newIndex = 0;
-            state.selectedItemIndex = newIndex;
-            state.selectedItem = state.equipment[newIndex];
-            renderModal();
-        }
-
-        function closeItem() {
-            state.selectedItem = null;
-            state.selectedItemIndex = -1;
-            document.getElementById('item-modal').classList.add('hidden');
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (!document.getElementById('item-modal').classList.contains('hidden')) {
-                if (event.key === "ArrowLeft") navItem(-1);
-                if (event.key === "ArrowRight") navItem(1);
-                if (event.key === "Escape") closeItem();
-            }
-        });
-
+        // ... Equipment Modal Logic (Same as before) ...
+        function viewItem(id) { const index = state.equipment.findIndex(e => e.id == id); if (index !== -1) { state.selectedItemIndex = index; state.selectedItem = state.equipment[index]; renderModal(); } }
+        function closeItem() { state.selectedItem = null; state.selectedItemIndex = -1; document.getElementById('item-modal').classList.add('hidden'); }
+        function navItem(direction) { if(event) event.stopPropagation(); let newIndex = state.selectedItemIndex + direction; if (newIndex < 0) newIndex = state.equipment.length - 1; if (newIndex >= state.equipment.length) newIndex = 0; state.selectedItemIndex = newIndex; state.selectedItem = state.equipment[newIndex]; renderModal(); }
+        
         function renderModal() {
             const modal = document.getElementById('item-modal');
             const item = state.selectedItem;
             if (!item) return;
             const imgUrl = processImageUrl(item.image);
-
-            modal.innerHTML = `
-                <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh] content-enter" onclick="event.stopPropagation()">
-                    <button onclick="closeItem()" class="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 z-20 backdrop-blur-md transition-all active:scale-95 shadow-lg">
-                        <i data-lucide="x" style="width:20px;height:20px;"></i>
-                    </button>
-                    <div class="relative h-64 shrink-0 bg-slate-50 w-full rounded-t-2xl overflow-hidden group">
-                        ${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-contain p-2" onerror="this.src='https://placehold.co/600x400?text=No+Image'"/>` : `<div class="w-full h-full flex items-center justify-center text-slate-400"><i data-lucide="image" style="width:48px;height:48px;"></i></div>`}
-                        <div class="absolute inset-0 flex items-center justify-between px-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                            <button onclick="navItem(-1)" class="bg-white/80 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg backdrop-blur-sm transition-transform active:scale-90 border border-slate-200">
-                                <i data-lucide="chevron-left" style="width:24px;height:24px;"></i>
-                            </button>
-                            <button onclick="navItem(1)" class="bg-white/80 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg backdrop-blur-sm transition-transform active:scale-90 border border-slate-200">
-                                <i data-lucide="chevron-right" style="width:24px;height:24px;"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-6 overflow-y-auto custom-scrollbar">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
-                                ${state.selectedItemIndex + 1} / ${state.equipment.length}
-                            </span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-800 mb-3 leading-tight">${item.name}</h3>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 leading-relaxed text-sm whitespace-pre-wrap">
-                            ${item.detail || "विवरण उपलब्ध नहीं है।"}
-                        </div>
-                    </div>
-                    <div class="p-4 border-t border-slate-100 bg-white shrink-0 rounded-b-2xl flex gap-3">
-                         <button onclick="navItem(-1)" class="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 md:hidden"><i data-lucide="chevron-left"></i></button>
-                        <button onclick="closeItem()" class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg active:scale-95 transform transition-transform">बंद करें</button>
-                        <button onclick="navItem(1)" class="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 md:hidden"><i data-lucide="chevron-right"></i></button>
-                    </div>
-                </div>
-            `;
+            modal.innerHTML = `<div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh] content-enter" onclick="event.stopPropagation()"><button onclick="closeItem()" class="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 z-20 backdrop-blur-md transition-all active:scale-95 shadow-lg"><i data-lucide="x" style="width:20px;height:20px;"></i></button><div class="relative h-64 shrink-0 bg-slate-50 w-full rounded-t-2xl overflow-hidden group">${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-contain p-2" onerror="this.src='https://placehold.co/600x400?text=No+Image'"/>` : `<div class="w-full h-full flex items-center justify-center text-slate-400"><i data-lucide="image" style="width:48px;height:48px;"></i></div>`}<div class="absolute inset-0 flex items-center justify-between px-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"><button onclick="navItem(-1)" class="bg-white/80 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg backdrop-blur-sm transition-transform active:scale-90 border border-slate-200"><i data-lucide="chevron-left" style="width:24px;height:24px;"></i></button><button onclick="navItem(1)" class="bg-white/80 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg backdrop-blur-sm transition-transform active:scale-90 border border-slate-200"><i data-lucide="chevron-right" style="width:24px;height:24px;"></i></button></div></div><div class="p-6 overflow-y-auto custom-scrollbar"><div class="flex items-center justify-between mb-3"><span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">${state.selectedItemIndex + 1} / ${state.equipment.length}</span></div><h3 class="text-2xl font-bold text-slate-800 mb-3 leading-tight">${item.name}</h3><div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 leading-relaxed text-sm whitespace-pre-wrap">${item.detail || "विवरण उपलब्ध नहीं है।"}</div></div><div class="p-4 border-t border-slate-100 bg-white shrink-0 rounded-b-2xl flex gap-3"><button onclick="navItem(-1)" class="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 md:hidden"><i data-lucide="chevron-left"></i></button><button onclick="closeItem()" class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg active:scale-95 transform transition-transform">बंद करें</button><button onclick="navItem(1)" class="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 md:hidden"><i data-lucide="chevron-right"></i></button></div></div>`;
             modal.classList.remove('hidden');
             lucide.createIcons();
         }
 
-        // --- PAYMENT MODAL WITH FULL CARD DOWNLOAD ---
-        function openPaymentModal() {
-            if (state.sidebarOpen) {
-                state.sidebarOpen = false;
-                document.getElementById('sidebar-overlay').classList.add('hidden');
-            }
-
-            const modal = document.getElementById('payment-modal');
-            const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`;
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`;
-
-            // Create Modal Content
-            modal.innerHTML = `
-                <div class="relative w-full max-w-[320px] content-enter" onclick="event.stopPropagation()">
-                    
-                    <!-- Close button (Outside the printable area) -->
-                    <button onclick="closePaymentModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors z-50">
-                        <i data-lucide="x" style="width:24px;height:24px;"></i>
-                    </button>
-
-                    <!-- The Card (We will capture this) -->
-                    <div id="printable-card" class="bg-white rounded-3xl overflow-hidden shadow-2xl relative">
-                        
-                        <!-- Header -->
-                        <div class="bg-yellow-400 p-5 text-center relative">
-                            <h3 class="text-base font-black text-slate-900 uppercase tracking-wider leading-tight">Support Us To Keep Things Free</h3>
-                        </div>
-
-                        <div class="p-6 flex flex-col items-center gap-5">
-                            <!-- QR Code -->
-                            <div class="p-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
-                                <img src="${qrUrl}" alt="Scan QR" class="w-48 h-48 object-contain mix-blend-multiply" crossorigin="anonymous">
-                            </div>
-
-                            <!-- UPI ID Display -->
-                            <div class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center">
-                                <span class="text-[10px] text-slate-400 font-bold uppercase mb-1">UPI ID</span>
-                                <span class="text-sm font-mono font-bold text-slate-800">${UPI_ID}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Footer -->
-                        <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
-                            <p class="text-[10px] text-slate-500 font-bold tracking-wide">
-                                Made With <span class="text-red-500">❤️</span> By Happy Solutions
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Action Text -->
-                    <p class="text-center text-white/80 text-xs mt-4">Card downloaded! Scan to pay.</p>
-                </div>
-            `;
-            
-            modal.classList.remove('hidden');
-            lucide.createIcons();
-
-            // Trigger download after image load
-            const qrImg = modal.querySelector('img');
-            if (qrImg) {
-                if (qrImg.complete) {
-                    captureAndDownload();
-                } else {
-                    qrImg.onload = captureAndDownload;
-                }
-            }
-        }
-
-        function captureAndDownload() {
-            const element = document.getElementById('printable-card');
-            if (!element) return;
-
-            html2canvas(element, {
-                useCORS: true,
-                scale: 2, // Better quality
-                backgroundColor: null 
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'Happy-Solutions-Support.png';
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            }).catch(err => {
-                console.error("Card download failed:", err);
-            });
-        }
-
-        function closePaymentModal() {
-            document.getElementById('payment-modal').classList.add('hidden');
-        }
-
-        // --- Render Logic ---
-        function render() {
-            const container = document.getElementById('app-content');
-            let html = '';
-
-            // Loading Screen
-            if (state.loading) {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center min-h-[60vh]">
-                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-200 h-12 w-12 mb-4"></div>
-                        <h2 class="text-xl font-bold text-slate-600">कंटेंट लोड हो रहा है...</h2>
-                        <p class="text-sm text-slate-400">कृपया प्रतीक्षा करें</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Home View
-            if (state.view === 'home') {
-                const statusMessage = state.dataLoaded 
-                    ? '<span class="text-green-600 text-xs font-bold flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full"><i data-lucide="check-circle" style="width:12px; height:12px;"></i> अपडेटेड</span>' 
-                    : '';
-
-                html = `
-                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 fade-in pb-20">
-                        <section class="text-center space-y-2">
-                            <h2 class="text-3xl font-black text-slate-800">नमस्ते, स्कैफोल्डर!</h2>
-                            <p class="text-slate-500">सुरक्षित कार्य ही हमारी प्राथमिकता है।</p>
-                            <div class="flex justify-center mt-2 h-6">${statusMessage}</div>
-                        </section>
-                        <div class="grid grid-cols-1 gap-4">
-                            <button onclick="navigate('study')" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 hover:shadow-md transition-all flex items-center gap-5 text-left relative overflow-hidden">
-                                <div class="absolute right-0 top-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                                <div class="bg-blue-100 text-blue-600 p-4 rounded-xl z-10"><i data-lucide="book-open" style="width:32px;height:32px;"></i></div>
-                                <div class="z-10">
-                                    <h3 class="font-bold text-xl text-slate-800">ट्रेनिंग मोड</h3>
-                                </div>
-                            </button>
-                            <button onclick="navigate('equipment')" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 hover:shadow-md transition-all flex items-center gap-5 text-left relative overflow-hidden">
-                                <div class="absolute right-0 top-0 w-24 h-24 bg-orange-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                                <div class="bg-orange-100 text-orange-600 p-4 rounded-xl z-10"><i data-lucide="hammer" style="width:32px;height:32px;"></i></div>
-                                <div class="z-10">
-                                    <h3 class="font-bold text-xl text-slate-800">टूल्स गैलरी</h3>
-                                </div>
-                            </button>
-                            <button onclick="startQuiz()" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-yellow-500 hover:shadow-md transition-all flex items-center gap-5 text-left relative overflow-hidden">
-                                <div class="absolute right-0 top-0 w-24 h-24 bg-yellow-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                                <div class="bg-yellow-100 text-yellow-600 p-4 rounded-xl z-10"><i data-lucide="trophy" style="width:32px;height:32px;"></i></div>
-                                <div class="z-10">
-                                    <h3 class="font-bold text-xl text-slate-800">क्विज चैलेंज</h3>
-                                </div>
-                            </button>
-                        </div>
-                    </main>
-                `;
-            } 
-            
-            // Equipment View
-            else if (state.view === 'equipment') {
-                const hasEquip = state.equipment.length > 0;
-                html = `
-                    <main class="p-4 max-w-2xl mx-auto space-y-4 fade-in pb-20">
-                        <div class="flex justify-between items-center mb-4">
-                            <div>
-                                <h2 class="text-2xl font-black text-slate-800">उपकरण गैलरी</h2>
-                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">विवरण के लिए क्लिक करें</p>
-                            </div>
-                            <button onclick="navigate('home')" class="bg-slate-100 p-2 rounded-full hover:bg-slate-200"><i data-lucide="x"></i></button>
-                        </div>
-                        
-                        ${!hasEquip ? `
-                            <div class="text-center p-10 bg-white rounded-2xl border border-dashed border-slate-300">
-                                <i data-lucide="image-off" class="mx-auto text-slate-300 mb-3 w-12 h-12"></i>
-                                <p class="text-slate-500 font-medium">कोई डेटा उपलब्ध नहीं है</p>
-                            </div>
-                        ` : `
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                ${state.equipment.map(item => {
-                                    const imgUrl = processImageUrl(item.image);
-                                    return `
-                                    <div onclick="viewItem('${item.id}')" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden cursor-pointer hover:shadow-lg hover:border-yellow-400 transition-all transform hover:-translate-y-1 active:scale-95 group">
-                                        <div class="aspect-square bg-slate-100 w-full relative overflow-hidden">
-                                            ${imgUrl ? `<img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-contain p-2" onerror="this.src='https://placehold.co/300x300?text=Image'"/>` : `<div class="w-full h-full flex items-center justify-center text-slate-300"><i data-lucide="image"></i></div>`}
-                                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                                                <span class="text-white text-xs font-bold bg-yellow-500 px-2 py-1 rounded">देखें</span>
-                                            </div>
-                                        </div>
-                                        <div class="p-3 text-center">
-                                            <h3 class="font-bold text-sm text-slate-800 line-clamp-2 leading-tight">${item.name}</h3>
-                                        </div>
-                                    </div>
-                                `}).join('')}
-                            </div>
-                        `}
-                        <button onclick="navigate('home')" class="w-full py-4 mt-6 bg-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-300">
-                            <i data-lucide="chevron-left"></i> वापस
-                        </button>
-                    </main>
-                `;
-            }
-
-            // Study View
-            else if (state.view === 'study') {
-                const categories = ['All', ...new Set(state.questions.map(q => q.cat))];
-                const filtered = state.filter === 'All' ? state.questions : state.questions.filter(q => q.cat === state.filter);
-                
-                html = `
-                    <main class="p-4 max-w-xl mx-auto space-y-6 fade-in pb-20">
-                        <div class="sticky top-[72px] z-30 bg-slate-50/95 backdrop-blur py-2">
-                            <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                                ${categories.map(cat => `
-                                    <button onclick="setFilter('${cat}')" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm ${state.filter === cat ? 'bg-slate-800 text-white shadow-md transform scale-105' : 'bg-white text-slate-600 border border-slate-200'}">
-                                        ${cat}
-                                    </button>
-                                `).join('')}
-                            </div>
-                        </div>
-                        <div class="space-y-4 pb-8">
-                            ${filtered.map(q => `
-                                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-yellow-500 hover:shadow-md transition-shadow">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-500 uppercase tracking-wide">${q.cat}</span>
-                                        <span class="text-xs text-slate-300 font-mono">#${q.id}</span>
-                                    </div>
-                                    <h3 class="font-bold text-lg mb-3 text-slate-900 leading-snug">${q.q}</h3>
-                                    <div class="bg-blue-50/50 p-4 rounded-lg text-slate-700 border border-blue-100/50">
-                                        <span class="text-blue-600 font-black mr-1 text-sm uppercase">उत्तर:</span> ${q.a}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="flex justify-center mt-4">
-                            <button onclick="navigate('home')" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-300">
-                                <i data-lucide="home" style="width:16px; height:16px;"></i> मुख्य पृष्ठ
-                            </button>
-                        </div>
-                    </main>
-                `;
-            } 
-            
-            // Quiz View
-            else if (state.view === 'quiz') {
-                const q = state.userSelections[state.currentIdx];
-                const progress = ((state.currentIdx + 1) / state.userSelections.length) * 100;
-
-                html = `
-                    <main class="p-4 max-w-md mx-auto space-y-6 pt-6 text-center fade-in pb-20">
-                        <div class="flex items-center justify-between mb-2">
-                            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">प्रश्न ${state.currentIdx + 1} / ${state.userSelections.length}</h2>
-                            <div class="bg-yellow-100 px-3 py-1 rounded-full text-yellow-800 font-bold text-xs">स्कोर: ${state.score}</div>
-                        </div>
-                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                            <div class="bg-yellow-500 h-full transition-all duration-300" style="width: ${progress}%"></div>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 min-h-[350px] flex flex-col items-center justify-center relative">
-                            <h3 class="text-2xl font-bold text-slate-800 mb-8 leading-tight">${q.q}</h3>
-                            ${!state.showAnswer ? `
-                                <button onclick="state.showAnswer=true; render();" class="bg-slate-900 text-white px-10 py-4 rounded-xl font-bold shadow-lg hover:bg-slate-800 hover:shadow-xl transform hover:-translate-y-1 transition-all">उत्तर दिखाएँ</button>
-                            ` : `
-                                <div class="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 text-slate-800 text-lg font-medium">${q.a}</div>
-                                    <p class="text-sm text-slate-400 font-bold uppercase tracking-wide">क्या आपका जवाब सही था?</p>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <button onclick="handleQuizAnswer(false)" class="p-4 rounded-xl border-2 border-slate-100 text-red-500 font-bold flex flex-col items-center hover:bg-red-50 hover:border-red-200 transition-colors"><i data-lucide="x" class="mb-1"></i>गलत</button>
-                                        <button onclick="handleQuizAnswer(true)" class="p-4 rounded-xl border-2 border-slate-100 text-green-500 font-bold flex flex-col items-center hover:bg-green-50 hover:border-green-200 transition-colors"><i data-lucide="check-circle-2" class="mb-1"></i>सही</button>
-                                    </div>
-                                </div>
-                            `}
-                        </div>
-                    </main>
-                `;
-            } 
-            
-            // Results View
-            else if (state.view === 'results') {
-                const percentage = (state.score / 10) * 100;
-                let message = percentage >= 80 ? "शानदार प्रदर्शन!" : percentage >= 50 ? "अच्छा प्रयास!" : "और अभ्यास करें";
-                let color = percentage >= 80 ? "text-green-500" : percentage >= 50 ? "text-yellow-500" : "text-slate-400";
-
-                html = `
-                    <main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 fade-in pb-20">
-                        <div class="relative">
-                            <svg class="w-48 h-48 transform -rotate-90">
-                                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-200" />
-                                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="${percentage >= 80 ? 'text-green-500' : 'text-yellow-500'}" stroke-dasharray="552" stroke-dashoffset="${552 - (552 * percentage / 100)}" stroke-linecap="round" />
-                            </svg>
-                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                <span class="text-5xl font-black text-slate-800">${state.score}</span>
-                                <span class="text-xl text-slate-400 font-bold">/10</span>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h2 class="text-3xl font-black text-slate-800 mb-2">${message}</h2>
-                            <p class="text-slate-500">आपने क्विज पूरा कर लिया है।</p>
-                        </div>
-
-                        <div class="w-full space-y-3">
-                            <button onclick="startQuiz()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-300 flex items-center justify-center gap-2 hover:bg-slate-800"><i data-lucide="refresh-cw"></i> फिर से कोशिश करें</button>
-                            <button onclick="navigate('home')" class="w-full py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-50">मुख्य पृष्ठ</button>
-                        </div>
-                    </main>
-                `;
-            }
-
-            container.innerHTML = html;
-            lucide.createIcons();
-        }
+        // ... Payment Modal Logic ...
+        function openPaymentModal() { if (state.sidebarOpen) { state.sidebarOpen = false; document.getElementById('sidebar-overlay').classList.add('hidden'); } const modal = document.getElementById('payment-modal'); const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&cu=INR`; const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`; downloadImage(qrUrl, "payment-qr.png"); modal.innerHTML = `<div class="bg-white w-full max-w-[320px] rounded-3xl overflow-hidden shadow-2xl relative content-enter transform scale-100 transition-transform" onclick="event.stopPropagation()"><div class="bg-yellow-400 p-5 text-center relative"><h3 class="text-base font-black text-slate-900 uppercase tracking-wider leading-tight">Support Us To Keep Things Free</h3><button onclick="closePaymentModal()" class="absolute top-3 right-3 text-slate-900/50 hover:text-slate-900 transition-colors"><i data-lucide="x" style="width:20px;height:20px;"></i></button></div><div id="printable-card" class="bg-white"><div class="p-6 flex flex-col items-center gap-5"><div class="p-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50"><img src="${qrUrl}" alt="Scan QR" class="w-48 h-48 object-contain mix-blend-multiply" crossorigin="anonymous"></div><div class="w-full"><button id="copyBtn" onclick="copyUpi()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between group active:bg-yellow-50 transition-colors"><div class="flex flex-col items-start"><span class="text-[10px] text-slate-400 font-bold uppercase">UPI ID</span><span class="text-xs font-mono font-bold text-slate-800">${UPI_ID}</span></div><div class="bg-white p-2 rounded-lg shadow-sm text-slate-400 group-hover:text-yellow-600 transition-colors"><i data-lucide="copy" style="width:16px;height:16px;"></i></div></button><p class="text-[10px] text-slate-400 text-center mt-2">QR Code has been downloaded to your gallery.</p></div></div><div class="bg-slate-50 p-3 text-center border-t border-slate-100"><p class="text-[10px] text-slate-500 font-bold tracking-wide">Made With <span class="text-red-500">❤️</span> By Happy Solutions</p></div></div></div>`; modal.classList.remove('hidden'); lucide.createIcons(); const qrImg = modal.querySelector('img'); if (qrImg) { if (qrImg.complete) { captureAndDownload(); } else { qrImg.onload = captureAndDownload; } } }
+        function captureAndDownload() { const element = document.getElementById('printable-card'); if (!element) return; html2canvas(element, { useCORS: true, scale: 2, backgroundColor: null }).then(canvas => { const link = document.createElement('a'); link.download = 'Happy-Solutions-Support.png'; link.href = canvas.toDataURL("image/png"); link.click(); }).catch(err => { console.error("Card download failed:", err); }); }
+        function closePaymentModal() { document.getElementById('payment-modal').classList.add('hidden'); }
+        async function downloadImage(imageSrc, nameOfDownload) { try { const response = await fetch(imageSrc); const blob = await response.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = nameOfDownload; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); } catch (error) { console.log('Auto-download prevented by browser', error); } }
+        function copyUpi() { navigator.clipboard.writeText(UPI_ID).then(() => { const btn = document.getElementById('copyBtn'); const originalContent = btn.innerHTML; btn.classList.add('bg-green-50', 'border-green-200'); btn.innerHTML = `<div class="flex items-center gap-2 w-full justify-center text-green-700 py-1"><i data-lucide="check-circle" style="width:16px;height:16px;"></i><span class="text-sm font-bold">Copied!</span></div>`; lucide.createIcons(); setTimeout(() => { btn.innerHTML = originalContent; btn.classList.remove('bg-green-50', 'border-green-200'); lucide.createIcons(); }, 2000); }).catch(err => console.error('Failed to copy', err)); }
 
         // Initialize
-        fetchSheetData(); // Fetch real data
-        render(); // Render initial state
+        fetchSheetData();
+        render();
     </script>
 </body>
 </html>
