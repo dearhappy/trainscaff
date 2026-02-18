@@ -517,24 +517,32 @@
                         <!-- ID CARD PREVIEW (This div is captured) -->
                         <div id="id-card-node" class="id-card-container flex flex-col mb-6 bg-white relative">
                             <!-- Header -->
-                            <div class="bg-indigo-900 text-white p-4 text-center">
-                                <h1 class="text-xl font-black tracking-widest uppercase">FIELD INCHARGE</h1>
-                                <p class="text-[10px] text-indigo-200 tracking-wide uppercase mt-1">Certified Scaffolder Training</p>
+                            <div class="bg-indigo-900 text-white p-4 text-center relative overflow-hidden">
+                                <!-- Decorative Circle -->
+                                <div class="absolute top-0 left-0 w-16 h-16 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-xl"></div>
+                                
+                                <div class="relative z-10 flex flex-col items-center">
+                                    <div class="border-2 border-yellow-400 px-4 py-1 rounded-md bg-indigo-950/50 shadow-sm mb-2 flex items-center gap-2">
+                                        <i data-lucide="shield-check" class="text-yellow-400 w-5 h-5"></i>
+                                        <h1 class="text-lg font-black tracking-widest uppercase text-white">FIELD INCHARGE</h1>
+                                    </div>
+                                    <p class="text-[10px] text-indigo-200 tracking-wide uppercase font-semibold">Scaffolding Safety Assessment</p>
+                                </div>
                             </div>
                             
                             <!-- Content -->
                             <div class="flex-1 p-6 flex flex-col items-center">
                                 <!-- Photo -->
-                                <div class="w-32 h-32 rounded-lg border-4 border-white shadow-lg overflow-hidden mb-4 bg-slate-200">
+                                <div class="w-28 h-28 rounded-lg border-4 border-white shadow-lg overflow-hidden mb-4 bg-slate-200 shrink-0">
                                     <img src="${state.examUser.photo}" class="w-full h-full object-cover">
                                 </div>
                                 
                                 <!-- Name -->
-                                <h2 class="text-2xl font-bold text-slate-900 uppercase leading-tight mb-1">${state.examUser.name}</h2>
-                                <p class="text-sm text-indigo-600 font-bold mb-6">${state.examUser.trainingId}</p>
+                                <h2 class="text-xl font-bold text-slate-900 uppercase leading-tight mb-1 text-center line-clamp-2">${state.examUser.name}</h2>
+                                <p class="text-xs text-indigo-600 font-bold mb-4">${state.examUser.trainingId}</p>
                                 
                                 <!-- Details Grid -->
-                                <div class="w-full space-y-2 text-left text-sm border-t border-slate-100 pt-4">
+                                <div class="w-full space-y-1.5 text-left text-xs border-t border-slate-100 pt-4">
                                     <div class="flex justify-between">
                                         <span class="text-slate-400 font-medium">Mobile:</span>
                                         <span class="text-slate-800 font-bold">${state.examUser.mobile}</span>
@@ -555,13 +563,15 @@
                             </div>
                             
                             <!-- Footer / Signature -->
-                            <div class="mt-auto p-4 text-center border-t border-slate-100">
-                                <div class="signature-font text-slate-800 text-3xl mb-1">Gurwinder Singh</div>
-                                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Authorized Signatory</p>
+                            <div class="mt-auto pt-2 pb-4 px-4 border-t border-slate-100 flex justify-end items-end relative z-10">
+                                <div class="text-right">
+                                    <div class="signature-font text-indigo-900 text-2xl mb-1 leading-none" style="font-size: 28px;">Gurwinder Singh</div>
+                                    <div class="h-px w-24 bg-slate-300 ml-auto mb-1"></div>
+                                    <p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Authorized Signatory</p>
+                                </div>
+                                <!-- Watermark/Design Element -->
+                                <div class="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
                             </div>
-                            
-                            <!-- Watermark/Design Element -->
-                            <div class="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
                         </div>
 
                         <div class="space-y-3 w-full max-w-xs">
