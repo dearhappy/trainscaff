@@ -49,7 +49,7 @@
         }
         .signature-font {
             font-family: 'Great Vibes', cursive;
-            /* Font size set inline for precision */
+            font-size: 20px; /* Reduced base size */
         }
 
         /* Ticker Animation */
@@ -222,7 +222,20 @@
             if (ticker && state.candidates.length > 0) {
                 // Reverse to show latest first
                 const list = [...state.candidates].reverse();
-                const tickerText = list.map(c => `🎉 ${c.name} (${c.score})`).join(' • ');
+                // Ensure score shows as 96% and not 0.96
+                const tickerText = list.map(c => {
+                    let displayScore = c.score;
+                    // If score is a decimal like 0.96, convert to 96%
+                    if (!isNaN(displayScore) && displayScore <= 1 && displayScore > 0) {
+                        displayScore = Math.round(displayScore * 100) + "%";
+                    }
+                    // If score is just a number like 96, append %
+                    else if (!isNaN(displayScore) && String(displayScore).indexOf('%') === -1) {
+                        displayScore = displayScore + "%";
+                    }
+                    return `🎉 ${c.name} (${displayScore})`;
+                }).join(' • ');
+                
                 ticker.innerHTML = `RECENTLY CERTIFIED: ${tickerText} • JOIN THE LEAGUE OF SAFE SCAFFOLDERS`;
             }
         }
@@ -613,7 +626,7 @@
                             <div class="mt-auto pt-2 pb-4 px-4 border-t border-slate-100 flex justify-end items-end relative z-10">
                                 <div class="text-right">
                                     <!-- Reduced signature size -->
-                                    <div class="signature-font text-indigo-900 mb-2 leading-none transform -rotate-6" style="font-size: 16px; font-weight: normal;">GS</div>
+                                    <div class="signature-font text-indigo-900 mb-2 leading-none transform -rotate-6" style="font-size: 20px; font-weight: normal;">GS</div>
                                     <div class="h-px w-20 bg-slate-300 ml-auto mb-1"></div>
                                     <p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Authorized Signatory</p>
                                 </div>
