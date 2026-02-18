@@ -39,7 +39,7 @@
         /* ID Card Specific Styles */
         .id-card-container {
             width: 320px;
-            height: 520px; /* Increased height slightly for better spacing */
+            height: 520px; 
             background: white;
             border-radius: 12px;
             overflow: hidden;
@@ -49,7 +49,7 @@
         }
         .signature-font {
             font-family: 'Great Vibes', cursive;
-            font-size: 20px; /* Reduced base size */
+            /* Font size set inline for precision */
         }
 
         /* Ticker Animation */
@@ -62,7 +62,7 @@
         .ticker {
             display: inline-block;
             padding-left: 100%;
-            animation: ticker 15s linear infinite;
+            animation: ticker 25s linear infinite; /* Slower animation for readability */
         }
         @keyframes ticker {
             0% { transform: translate3d(0, 0, 0); }
@@ -168,6 +168,7 @@
             equipment: [],
             loading: false,
             dataLoaded: false,
+            candidates: [], // Stores ticker data
             
             // Quiz State
             currentIdx: 0,
@@ -207,9 +208,23 @@
                 const data = await response.json();
                 if (data.questions?.length > 0) state.questions = data.questions;
                 if (data.equipment?.length > 0) state.equipment = data.equipment;
+                if (data.candidates?.length > 0) {
+                    state.candidates = data.candidates;
+                    updateTicker();
+                }
                 state.dataLoaded = true;
-            } catch (error) { console.error("Data error"); } 
+            } catch (error) { console.error("Data error", error); } 
             finally { state.loading = false; render(); }
+        }
+
+        function updateTicker() {
+            const ticker = document.getElementById('news-ticker');
+            if (ticker && state.candidates.length > 0) {
+                // Reverse to show latest first
+                const list = [...state.candidates].reverse();
+                const tickerText = list.map(c => `🎉 ${c.name} (${c.score})`).join(' • ');
+                ticker.innerHTML = `RECENTLY CERTIFIED: ${tickerText} • JOIN THE LEAGUE OF SAFE SCAFFOLDERS`;
+            }
         }
 
         // --- EXAM LOGIC ---
@@ -314,11 +329,9 @@
             const total = state.examQuestions.length;
             const percentage = Math.round((state.examScore / total) * 100);
 
-            // Update Ticker
-            const ticker = document.getElementById('news-ticker');
-            if(ticker) {
-                ticker.innerHTML = `🎉 Congratulations ${state.examUser.name} for passing the Scaffolding Safety Assessment with ${percentage}% marks! 🎉  •  Safety is our Priority  •  Well Done!`;
-            }
+            // Add current user to local ticker immediately
+            state.candidates.push({name: state.examUser.name, score: percentage + "%"});
+            updateTicker();
 
             // Save to Sheet
             try {
@@ -361,7 +374,7 @@
 
         function downloadIDCard() {
             const card = document.getElementById('id-card-node');
-            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
+            html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
                 const a = document.createElement('a');
                 a.download = `Training-ID-${state.examUser.name}.png`;
                 a.href = canvas.toDataURL("image/png");
@@ -571,8 +584,8 @@
                                     <img src="${state.examUser.photo}" class="w-full h-full object-cover">
                                 </div>
                                 
-                                <!-- Name -->
-                                <h2 class="text-xl font-extrabold text-slate-900 uppercase leading-tight mb-1 text-center line-clamp-2">${state.examUser.name}</h2>
+                                <!-- Name (Increased visibility and adjusted spacing) -->
+                                <h2 class="text-xl font-extrabold text-slate-900 uppercase leading-normal mb-1 text-center pb-1">${state.examUser.name}</h2>
                                 <p class="text-xs text-indigo-600 font-bold mb-4">${state.examUser.trainingId}</p>
                                 
                                 <!-- Details Grid -->
@@ -599,7 +612,8 @@
                             <!-- Footer / Signature -->
                             <div class="mt-auto pt-2 pb-4 px-4 border-t border-slate-100 flex justify-end items-end relative z-10">
                                 <div class="text-right">
-                                    <div class="signature-font text-indigo-900 mb-2 leading-none transform -rotate-6" style="font-size: 20px; font-weight: normal;">GS</div>
+                                    <!-- Reduced signature size -->
+                                    <div class="signature-font text-indigo-900 mb-2 leading-none transform -rotate-6" style="font-size: 16px; font-weight: normal;">GS</div>
                                     <div class="h-px w-20 bg-slate-300 ml-auto mb-1"></div>
                                     <p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Authorized Signatory</p>
                                 </div>
@@ -677,6 +691,10 @@
 
             container.innerHTML = html;
             lucide.createIcons();
+            // Ensure ticker is updated if data is already loaded and we're just re-rendering
+            if (state.dataLoaded && state.candidates.length > 0) {
+               updateTicker();
+            }
         }
 
         // --- HANDLERS ---
