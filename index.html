@@ -51,25 +51,53 @@
             font-family: 'Great Vibes', cursive;
             font-size: 24px;
         }
+
+        /* Ticker Animation */
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .ticker {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 15s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 pb-10">
 
     <!-- Header -->
-    <header class="bg-slate-900 text-white p-4 sticky top-0 z-50 flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="navigate('home')">
-            <div class="bg-yellow-500 p-1.5 rounded-lg text-slate-900">
-                <i data-lucide="shield-check"></i>
+    <header class="bg-slate-900 text-white p-4 sticky top-0 z-50 flex flex-col shadow-md">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="navigate('home')">
+                <div class="bg-yellow-500 p-1.5 rounded-lg text-slate-900">
+                    <i data-lucide="shield-check"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">ScaffoldMaster</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-yellow-500 font-semibold text-left">By Gurwinder Singh</p>
+                </div>
             </div>
-            <div>
-                <h1 class="font-bold text-lg leading-tight">ScaffoldMaster</h1>
-                <p class="text-[10px] uppercase tracking-widest text-yellow-500 font-semibold text-left">By Gurwinder Singh</p>
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-800 rounded-full">
+                <i data-lucide="menu" id="menu-icon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Ticker Section -->
+    <div class="bg-indigo-900 text-indigo-100 text-xs py-2 border-t border-indigo-800 relative z-40">
+        <div class="ticker-wrap">
+            <div id="news-ticker" class="ticker font-mono font-bold uppercase tracking-wide">
+                Welcome to ScaffoldMaster • Safety First • Always Wear PPE • Complete your Training & Exam to get Certified
             </div>
         </div>
-        <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-800 rounded-full">
-            <i data-lucide="menu" id="menu-icon"></i>
-        </button>
-    </header>
+    </div>
 
     <!-- Sidebar -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm hidden" onclick="toggleSidebar()">
@@ -285,6 +313,12 @@
 
             const total = state.examQuestions.length;
             const percentage = Math.round((state.examScore / total) * 100);
+
+            // Update Ticker
+            const ticker = document.getElementById('news-ticker');
+            if(ticker) {
+                ticker.innerHTML = `🎉 Congratulations ${state.examUser.name} for passing the Scaffolding Safety Assessment with ${percentage}% marks! 🎉  •  Safety is our Priority  •  Well Done!`;
+            }
 
             // Save to Sheet
             try {
@@ -565,8 +599,8 @@
                             <!-- Footer / Signature -->
                             <div class="mt-auto pt-2 pb-4 px-4 border-t border-slate-100 flex justify-end items-end relative z-10">
                                 <div class="text-right">
-                                    <div class="signature-font text-indigo-900 mb-2 leading-none transform -rotate-6" style="font-size: 48px; font-weight: normal;">GS</div>
-                                    <div class="h-px w-24 bg-slate-300 ml-auto mb-1"></div>
+                                    <div class="signature-font text-indigo-900 mb-2 leading-none transform -rotate-6" style="font-size: 32px; font-weight: normal;">GS</div>
+                                    <div class="h-px w-20 bg-slate-300 ml-auto mb-1"></div>
                                     <p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Authorized Signatory</p>
                                 </div>
                                 <!-- Watermark/Design Element -->
