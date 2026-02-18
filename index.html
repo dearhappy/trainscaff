@@ -6,8 +6,10 @@
     <title>ScaffoldMaster - By Gurwinder Singh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Added html2canvas for card and certificate downloading -->
+    <!-- Added html2canvas for card downloading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Added Google Font for Signature -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -34,10 +36,20 @@
         }
         @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
-        /* Certificate Styles */
-        .certificate-bg {
-            background-image: radial-gradient(circle at center, white 0%, #f8fafc 100%);
-            border: 8px double #1e293b;
+        /* ID Card Specific Styles */
+        .id-card-container {
+            width: 320px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .signature-font {
+            font-family: 'Great Vibes', cursive;
+            font-size: 24px;
         }
     </style>
 </head>
@@ -137,11 +149,10 @@
             filter: 'All',
             
             // Exam State
-            examUser: { name: '', mobile: '' },
+            examUser: { name: '', mobile: '', aadhaar: '', photo: null, trainingId: '' },
             examQuestions: [],
             examCurrentIdx: 0,
             examScore: 0,
-            examSubmitted: false,
             
             // UI State
             sidebarOpen: false,
@@ -225,17 +236,55 @@
                 state.examCurrentIdx++;
                 render();
             } else {
-                finishExam();
+                checkExamResult();
             }
         }
 
-        async function finishExam() {
+        function checkExamResult() {
+            const total = state.examQuestions.length;
+            const percentage = Math.round((state.examScore / total) * 100);
+            const passed = percentage >= 60;
+
+            if (passed) {
+                navigate('exam-pass-details');
+            } else {
+                saveFailedResult(percentage);
+            }
+        }
+
+        // Handle Photo Upload
+        function handlePhotoUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    state.examUser.photo = e.target.result;
+                    // Show preview
+                    document.getElementById('photo-preview').src = e.target.result;
+                    document.getElementById('photo-preview').classList.remove('hidden');
+                    document.getElementById('photo-placeholder').classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Final Submission after adding photo/aadhaar
+        async function generateIDCardAndSave() {
+            const aadhaar = document.getElementById('aadhaarInput').value;
+            if (!state.examUser.photo || !aadhaar) {
+                alert("Please upload photo and enter Aadhaar number.");
+                return;
+            }
+            
             state.loading = true;
-            render();
+            state.examUser.aadhaar = aadhaar;
+            render(); // Show loader
+
+            // Generate Training ID: FI-YYYY-RANDOM
+            const trainingId = `FI-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+            state.examUser.trainingId = trainingId;
 
             const total = state.examQuestions.length;
             const percentage = Math.round((state.examScore / total) * 100);
-            const status = percentage >= 60 ? "PASS" : "FAIL";
 
             // Save to Sheet
             try {
@@ -244,21 +293,43 @@
                     body: JSON.stringify({
                         name: state.examUser.name,
                         mobile: state.examUser.mobile,
+                        aadhaar: aadhaar,
+                        trainingId: trainingId,
                         percentage: percentage,
-                        status: status
+                        status: "PASS"
                     })
                 });
             } catch (e) { console.error("Save failed", e); }
 
             state.loading = false;
-            navigate('exam-result');
+            navigate('exam-id-card');
         }
 
-        function downloadCertificate() {
-            const cert = document.getElementById('certificate-node');
-            html2canvas(cert, { scale: 2 }).then(canvas => {
+        async function saveFailedResult(percentage) {
+            state.loading = true;
+            render();
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: state.examUser.name,
+                        mobile: state.examUser.mobile,
+                        aadhaar: "N/A",
+                        trainingId: "N/A",
+                        percentage: percentage,
+                        status: "FAIL"
+                    })
+                });
+            } catch (e) { console.error("Save failed", e); }
+            state.loading = false;
+            navigate('exam-fail');
+        }
+
+        function downloadIDCard() {
+            const card = document.getElementById('id-card-node');
+            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
                 const a = document.createElement('a');
-                a.download = `Certificate-${state.examUser.name}.png`;
+                a.download = `Training-ID-${state.examUser.name}.png`;
                 a.href = canvas.toDataURL("image/png");
                 a.click();
             });
@@ -312,13 +383,13 @@
                                 <div class="bg-yellow-100 text-yellow-600 p-4 rounded-xl"><i data-lucide="trophy" style="width:32px;height:32px;"></i></div>
                                 <div><h3 class="font-bold text-xl text-slate-800">क्विज चैलेंज</h3><p class="text-xs text-slate-400">Practice Test</p></div>
                             </button>
-                            <!-- NEW EXAM CARD -->
+                            <!-- EXAM CARD -->
                             <button onclick="startExamRegistration()" class="group bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 hover:bg-slate-900 transition-all flex items-center gap-5 text-left relative overflow-hidden">
                                 <div class="absolute right-0 top-0 w-24 h-24 bg-white/5 rounded-bl-full -mr-4 -mt-4"></div>
                                 <div class="bg-indigo-500 text-white p-4 rounded-xl relative z-10"><i data-lucide="graduation-cap" style="width:32px;height:32px;"></i></div>
                                 <div class="relative z-10 text-white">
                                     <h3 class="font-bold text-xl">फाइनल परीक्षा</h3>
-                                    <p class="text-xs text-slate-300">Exam & Certificate</p>
+                                    <p class="text-xs text-slate-300">Exam & ID Card</p>
                                 </div>
                             </button>
                         </div>
@@ -393,72 +464,136 @@
                 `;
             }
 
-            // EXAM RESULT
-            else if (state.view === 'exam-result') {
-                const total = state.examQuestions.length;
-                const percentage = Math.round((state.examScore / total) * 100);
-                const passed = percentage >= 60;
-
-                if (passed) {
-                    html = `
-                        <main class="p-4 max-w-md mx-auto pt-6 fade-in pb-20 text-center">
+            // EXAM PASSED - DETAILS COLLECTION
+            else if (state.view === 'exam-pass-details') {
+                const percentage = Math.round((state.examScore / state.examQuestions.length) * 100);
+                html = `
+                    <main class="p-6 max-w-md mx-auto min-h-[80vh] flex flex-col justify-center fade-in text-center">
+                        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
                             <div class="mb-6">
-                                <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-50">
-                                    <i data-lucide="check" style="width:40px;height:40px;"></i>
+                                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-50">
+                                    <i data-lucide="check" style="width:32px;height:32px;"></i>
                                 </div>
-                                <h2 class="text-3xl font-black text-slate-800">बधाई हो! (Passed)</h2>
-                                <p class="text-slate-500">आपने परीक्षा उत्तीर्ण कर ली है।</p>
+                                <h2 class="text-2xl font-black text-slate-800">Exam Passed!</h2>
+                                <p class="text-green-600 font-bold text-lg">Score: ${percentage}%</p>
+                                <p class="text-slate-500 text-sm mt-2">ID कार्ड के लिए फोटो और आधार विवरण दें।</p>
                             </div>
+                            
+                            <div class="space-y-4 text-left">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Passport Size Photo</label>
+                                    <div class="relative w-32 h-32 mx-auto bg-slate-100 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-indigo-500 transition-colors">
+                                        <input type="file" accept="image/*" onchange="handlePhotoUpload(this)" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+                                        <img id="photo-preview" class="hidden w-full h-full object-cover z-10">
+                                        <div id="photo-placeholder" class="text-center text-slate-400">
+                                            <i data-lucide="camera" class="mx-auto mb-1"></i>
+                                            <span class="text-[10px]">Upload</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">आधार नंबर (Aadhaar No.)</label>
+                                    <input type="text" id="aadhaarInput" class="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:outline-none font-bold text-slate-800 text-center tracking-widest" placeholder="XXXX XXXX XXXX">
+                                </div>
 
-                            <!-- Certificate Preview (Hidden off-screen but rendered for capture) -->
-                            <div class="overflow-x-auto flex justify-center mb-6">
-                                <div id="certificate-node" class="certificate-bg bg-white p-8 w-[600px] text-center relative shadow-2xl flex-shrink-0">
-                                    <div class="absolute top-4 left-4 opacity-10"><i data-lucide="shield-check" style="width:60px;height:60px;"></i></div>
-                                    <div class="absolute bottom-4 right-4 opacity-10"><i data-lucide="award" style="width:60px;height:60px;"></i></div>
-                                    
-                                    <h1 class="text-3xl font-serif font-bold text-slate-900 mb-2 uppercase tracking-widest border-b-2 border-slate-900 inline-block pb-1">Certificate of Completion</h1>
-                                    <p class="text-slate-500 italic mt-2">This is to certify that</p>
-                                    
-                                    <h2 class="text-4xl font-black text-indigo-700 my-4 uppercase font-serif">${state.examUser.name}</h2>
-                                    
-                                    <p class="text-slate-600 mb-6">Mobile: ${state.examUser.mobile}</p>
-                                    <p class="text-slate-700 leading-relaxed max-w-md mx-auto">Has successfully completed the <strong>Scaffolding Safety Assessment</strong> with a score of:</p>
-                                    
-                                    <div class="text-5xl font-black text-slate-900 my-4">${percentage}%</div>
-                                    
-                                    <div class="flex justify-between items-end mt-12 border-t border-slate-300 pt-4">
-                                        <div class="text-xs text-slate-400">Date: ${new Date().toLocaleDateString()}</div>
-                                        <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Exam Authority</div>
+                                <button onclick="generateIDCardAndSave()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition-colors mt-2">
+                                    Generate ID Card
+                                </button>
+                            </div>
+                        </div>
+                    </main>
+                `;
+            }
+
+            // EXAM PASSED - SHOW ID CARD
+            else if (state.view === 'exam-id-card') {
+                const percentage = Math.round((state.examScore / state.examQuestions.length) * 100);
+                
+                html = `
+                    <main class="p-4 max-w-md mx-auto pt-6 fade-in pb-20 text-center flex flex-col items-center">
+                        <h2 class="text-2xl font-black text-slate-800 mb-6">आपका ट्रेनिंग ID कार्ड</h2>
+
+                        <!-- ID CARD PREVIEW (This div is captured) -->
+                        <div id="id-card-node" class="id-card-container flex flex-col mb-6 bg-white relative">
+                            <!-- Header -->
+                            <div class="bg-indigo-900 text-white p-4 text-center">
+                                <h1 class="text-xl font-black tracking-widest uppercase">FIELD INCHARGE</h1>
+                                <p class="text-[10px] text-indigo-200 tracking-wide uppercase mt-1">Certified Scaffolder Training</p>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div class="flex-1 p-6 flex flex-col items-center">
+                                <!-- Photo -->
+                                <div class="w-32 h-32 rounded-lg border-4 border-white shadow-lg overflow-hidden mb-4 bg-slate-200">
+                                    <img src="${state.examUser.photo}" class="w-full h-full object-cover">
+                                </div>
+                                
+                                <!-- Name -->
+                                <h2 class="text-2xl font-bold text-slate-900 uppercase leading-tight mb-1">${state.examUser.name}</h2>
+                                <p class="text-sm text-indigo-600 font-bold mb-6">${state.examUser.trainingId}</p>
+                                
+                                <!-- Details Grid -->
+                                <div class="w-full space-y-2 text-left text-sm border-t border-slate-100 pt-4">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-medium">Mobile:</span>
+                                        <span class="text-slate-800 font-bold">${state.examUser.mobile}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-medium">Aadhaar:</span>
+                                        <span class="text-slate-800 font-bold">${state.examUser.aadhaar}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-medium">Exam Score:</span>
+                                        <span class="text-green-600 font-bold">${percentage}% (PASS)</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-medium">Valid From:</span>
+                                        <span class="text-slate-800 font-bold">${new Date().toLocaleDateString()}</span>
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Footer / Signature -->
+                            <div class="mt-auto p-4 text-center border-t border-slate-100">
+                                <div class="signature-font text-slate-800 text-3xl mb-1">Gurwinder Singh</div>
+                                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Authorized Signatory</p>
+                            </div>
+                            
+                            <!-- Watermark/Design Element -->
+                            <div class="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+                        </div>
 
-                            <div class="space-y-3">
-                                <button onclick="downloadCertificate()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
-                                    <i data-lucide="download"></i> सर्टिफिकेट डाउनलोड करें
-                                </button>
-                                <button onclick="navigate('home')" class="w-full border-2 border-slate-200 py-3 rounded-xl font-bold text-slate-600">मुख्य पृष्ठ</button>
-                            </div>
-                        </main>
-                    `;
-                } else {
-                    html = `
-                        <main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-6 fade-in pb-20">
-                            <div class="w-24 h-24 bg-red-100 text-red-500 rounded-full flex items-center justify-center border-4 border-red-50">
-                                <i data-lucide="alert-triangle" style="width:48px;height:48px;"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-3xl font-black text-slate-800">प्रशिक्षण आवश्यक है</h2>
-                                <p class="text-red-500 font-bold text-xl mt-1">Score: ${percentage}%</p>
-                                <p class="text-slate-500 mt-2 text-sm">पास होने के लिए 60% अंक जरूरी हैं।<br>कृपया ट्रेनिंग मोड में दोबारा पढ़ाई करें।</p>
-                            </div>
-                            <div class="w-full space-y-3">
-                                <button onclick="navigate('study')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">ट्रेनिंग मोड में जाएँ</button>
-                                <button onclick="navigate('home')" class="w-full border-2 border-slate-200 py-3 rounded-xl font-bold text-slate-600">मुख्य पृष्ठ</button>
-                            </div>
-                        </main>
-                    `;
-                }
+                        <div class="space-y-3 w-full max-w-xs">
+                            <button onclick="downloadIDCard()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-slate-800">
+                                <i data-lucide="download"></i> ID कार्ड डाउनलोड करें
+                            </button>
+                            <button onclick="navigate('home')" class="w-full border-2 border-slate-200 py-3 rounded-xl font-bold text-slate-600">मुख्य पृष्ठ</button>
+                        </div>
+                    </main>
+                `;
+            }
+
+            // EXAM FAIL
+            else if (state.view === 'exam-fail') {
+                const total = state.examQuestions.length;
+                const percentage = Math.round((state.examScore / total) * 100);
+                html = `
+                    <main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-6 fade-in pb-20">
+                        <div class="w-24 h-24 bg-red-100 text-red-500 rounded-full flex items-center justify-center border-4 border-red-50">
+                            <i data-lucide="alert-triangle" style="width:48px;height:48px;"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-black text-slate-800">प्रशिक्षण आवश्यक है</h2>
+                            <p class="text-red-500 font-bold text-xl mt-1">Score: ${percentage}%</p>
+                            <p class="text-slate-500 mt-2 text-sm">पास होने के लिए 60% अंक जरूरी हैं।<br>कृपया ट्रेनिंग मोड में दोबारा पढ़ाई करें।</p>
+                        </div>
+                        <div class="w-full space-y-3">
+                            <button onclick="navigate('study')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">ट्रेनिंग मोड में जाएँ</button>
+                            <button onclick="navigate('home')" class="w-full border-2 border-slate-200 py-3 rounded-xl font-bold text-slate-600">मुख्य पृष्ठ</button>
+                        </div>
+                    </main>
+                `;
             }
 
             // Standard Views (Study, Equipment, Quiz) from previous code...
@@ -493,7 +628,6 @@
             else if (state.view === 'results') {
                 const percentage = (state.score / 10) * 100;
                 let message = percentage >= 80 ? "शानदार प्रदर्शन!" : percentage >= 50 ? "अच्छा प्रयास!" : "और अभ्यास करें";
-                let color = percentage >= 80 ? "text-green-500" : percentage >= 50 ? "text-yellow-500" : "text-slate-400";
                 html = `<main class="p-4 max-w-md mx-auto flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 fade-in pb-20"><div class="relative"><svg class="w-48 h-48 transform -rotate-90"><circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-200" /><circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" class="${percentage >= 80 ? 'text-green-500' : 'text-yellow-500'}" stroke-dasharray="552" stroke-dashoffset="${552 - (552 * percentage / 100)}" stroke-linecap="round" /></svg><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"><span class="text-5xl font-black text-slate-800">${state.score}</span><span class="text-xl text-slate-400 font-bold">/10</span></div></div><div><h2 class="text-3xl font-black text-slate-800 mb-2">${message}</h2><p class="text-slate-500">आपने क्विज पूरा कर लिया है।</p></div><div class="w-full space-y-3"><button onclick="startQuiz()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-300 flex items-center justify-center gap-2 hover:bg-slate-800"><i data-lucide="refresh-cw"></i> फिर से कोशिश करें</button><button onclick="navigate('home')" class="w-full py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-50">मुख्य पृष्ठ</button></div></main>`;
             }
 
@@ -505,13 +639,8 @@
         function handleRegistration() {
             const name = document.getElementById('regName').value;
             const mobile = document.getElementById('regMobile').value;
-            
-            if (!name || !mobile) {
-                alert("कृपया अपना नाम और मोबाइल नंबर दर्ज करें।");
-                return;
-            }
-            
-            state.examUser = { name, mobile };
+            if (!name || !mobile) { alert("कृपया अपना नाम और मोबाइल नंबर दर्ज करें।"); return; }
+            state.examUser = { name, mobile, aadhaar: '', photo: null, trainingId: '' };
             generateExamQuestions();
         }
 
