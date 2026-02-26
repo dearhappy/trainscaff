@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://www.fieldincharge.in/training-programs/assessment",
+      "permanent": true
+    }
+  ]
+}
